@@ -106,6 +106,7 @@ if (args.Contains("--apply-schema"))
     var store = app.Services.GetRequiredService<IDocumentStore>();
     await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
     await TelemetrySchema.ApplyAsync(app.Services.GetRequiredService<NpgsqlDataSource>());
+    Console.WriteLine("Schema applied.");
     return;
 }
 
