@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Keep the LupiraLocationApi.* namespaces unchanged across the project split. -->
+    <RootNamespace>LupiraLocationApi</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Expose internal helpers (Geo, PartitionManager.Bounds) for unit testing. -->
+    <InternalsVisibleTo Include="LupiraLocationApi.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The bounded context + data: Domain (identity, devices, location intelligence), Application (services +
+         OpResult + the raw-Npgsql telemetry ingest/query path), Dtos, Mappers. Marten is the document store on the
+         `location` schema; the `telemetry` schema is raw partitioned tables written via Npgsql (which flows in
+         transitively from Marten). No ASP.NET dependency — that lives in the host. -->
+    <PackageReference Include="Marten" Version="9.6.0" />
+  </ItemGroup>
+
+</Project>
