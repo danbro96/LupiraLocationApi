@@ -1,39 +1,209 @@
 # LupiraLocationApi
 
-A personal location/presence-tracking API — sibling service to the other Lupira APIs, sharing the same identity
-(Authentik OIDC) and operational conventions (.NET 10, Marten on Postgres, Minimal APIs, `OpResult<T>`, OpenTelemetry →
-OpenObserve, Docker + GitHub Actions → Docker Hub) but owning its data in its **own database** (`lupira_location`),
-isolated from the other services. Extracted from `LupiraHealthApi` — GPS/presence is a distinct product from health
-vitals, with its own sharing model and high-volume always-on ingest.
+A self-hosted **location/presence API** for a single owner. It registers the devices that produce GPS
+telemetry, ingests their fixes at high volume, and serves the owner's track, movement stats, and derived
+**Visits / Trips / daily summaries** back over a clean REST API.
 
-## Scope
+It is built for a *store-and-forward tracking client* (e.g. a phone app, built separately) that uploads
+batched fixes whenever it has connectivity, and for an owner who wants to query their own history — never
+a multi-tenant or social product. All data belongs to one principal and is isolated in its own database.
 
-- **Identity** — JIT-provisioned `Principal` (the OIDC `sub` is the only cross-service join key; no shared user table).
-- **Devices** — register/list/rename/retire the devices that feed location telemetry; registration mints a one-time
-  per-device **ingest API key**. A device is owned directly by the principal that registered it (single-owner).
-- **Location tracking** — batched NDJSON ingest (idempotent via device `seq`, resumable via a cursor, pausable),
-  raw/thinned track + distance/speed stats + bounding-box queries, on-read downsampling, and derived
-  **Visits / Trips / DailyLocationSummary** (materialized by a rollup), plus a coarse "where was I at T" place label.
-  Raw fixes live in time-partitioned `telemetry` tables (native weekly partitioning, no PostGIS/TimescaleDB).
+## What it does
 
-## Architecture
+- **Identity** — a local `Principal` is provisioned just-in-time from the caller's OIDC token. The OIDC
+  `sub` is the durable anchor; email is a mutable lookup key. There is no shared user table.
+- **Devices** — register / list / rename / retire the devices that feed telemetry. Registration mints a
+  one-time, per-device **ingest API key**. A device is owned directly by the principal that registered it.
+- **Ingest** — batched NDJSON upload of GPS fixes. Idempotent (each fix carries a device-assigned `seq`),
+  resumable (a cursor reports the high-water `seq`), and pausable (a per-device kill-switch). Raw fixes
+  land in time-partitioned tables (native weekly range partitions — no PostGIS or TimescaleDB).
+- **Query** — latest position per device, raw or server-thinned track, distance/speed stats, bounding-box
+  search, derived **Visits / Trips / DailyLocationSummary** (materialized by a nightly rollup), and a
+  coarse "where was I at *T*" place label.
+- **Maintenance** — a background service provisions upcoming partitions, runs the rollup, and drops raw
+  partitions past the retention window.
 
-- `src/LupiraLocationApi.Core` — domain + application services + DTOs (zero ASP.NET). Marten owns the `location` schema;
-  the high-frequency time-series lives in a separate `telemetry` schema written by raw Npgsql (binary-array idempotent
-  merge), which Marten's schema-diff never touches.
-- `src/LupiraLocationApi` — thin ASP.NET host: Minimal-API endpoint groups → handlers → services. Two auth policies:
-  `ApiPolicy` (OIDC JWT for humans) and `IngestPolicy` (per-device API key for the uploader).
+See [docs/architecture.md](docs/architecture.md) for the full design and the domain model.
 
-## Develop
+## Surfaces
+
+| Surface | Base path | Auth | Notes |
+|---|---|---|---|
+| REST (owner) | `/api` | OIDC JWT (`ApiPolicy`) | Device management + location query/control. |
+| Ingest (uploader) | `/api/ingest` | Per-device key (`IngestPolicy`) | `Authorization: DeviceKey {keyId}.{secret}`. |
+| Health | `/livez`, `/readyz` | none | Liveness / readiness (Postgres reachable). |
+| OpenAPI | `/openapi/v1.json` | none | Generated OpenAPI document. |
+| API reference | `/scalar/v1` | none | [Scalar](https://github.com/scalar/scalar) interactive UI. |
+
+There is **no MCP / agent surface** — this service is REST + ingest only.
+
+### Route map
+
+REST — `ApiPolicy` (OIDC JWT):
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/me` | The caller's resolved local identity (JIT-provisioned). |
+| GET | `/api/devices` | List the caller's devices. |
+| POST | `/api/devices` | Register a device; returns the one-time ingest API key. |
+| PUT | `/api/devices/{id}` | Rename a device. |
+| DELETE | `/api/devices/{id}` | Retire a device (revokes its ingest keys). |
+| GET | `/api/location/current` | Latest known location per device. |
+| GET | `/api/location/track` | Raw track over a time range (capped). |
+| GET | `/api/location/track/thinned` | Server-downsampled track (one best-accuracy fix per bucket). |
+| GET | `/api/location/stats` | Distance + speed stats over a range. |
+| GET | `/api/location/bbox` | Fixes within a lat/lon rectangle over a range. |
+| GET | `/api/location/at` | Coarse place label at a timestamp (never the raw fix). |
+| GET | `/api/location/visits` | Materialized stay-points over a range. |
+| GET | `/api/location/trips` | Materialized trips over a range. |
+| GET | `/api/location/summary` | Per-day location rollup. |
+| DELETE | `/api/location` | Purge raw fixes + derived docs in a range (owner erase). |
+| POST | `/api/location/tracking/{deviceId}/pause` | Pause tracking (ingest discarded while paused). |
+| POST | `/api/location/tracking/{deviceId}/resume` | Resume tracking. |
+| GET | `/api/location/tracking/{deviceId}/state` | Tracking state for a device. |
+
+Ingest — `IngestPolicy` (per-device key):
+
+| Method | Route | Purpose |
+|---|---|---|
+| POST | `/api/ingest/location` | Ingest a batch of GPS fixes (NDJSON, one fix per line). |
+| GET | `/api/ingest/location/cursor` | The device's resume cursor (last accepted `seq` + `ts`). |
+| GET | `/api/ingest/location/state` | Whether tracking is paused (the uploader should stop collecting if so). |
+
+## Tech stack
+
+| Area | Choice | Version |
+|---|---|---|
+| Runtime | .NET | 10 (`net10.0`) |
+| Web | ASP.NET Core Minimal APIs | 10 |
+| Document store | [Marten](https://martendb.io) on PostgreSQL (plain documents — not event-sourced) | 9.6.0 |
+| Time-series | Raw Npgsql over native range-partitioned tables | (Npgsql via Marten) |
+| OpenAPI | `Microsoft.AspNetCore.OpenApi` | 10.0.9 |
+| Auth | `Microsoft.AspNetCore.Authentication.JwtBearer` | 10.0.9 |
+| API reference UI | `Scalar.AspNetCore` | 2.16.4 |
+| Telemetry | OpenTelemetry (traces/metrics/logs, OTLP exporter) | 1.16.x / 1.15.x |
+| Tests | xUnit + Testcontainers for PostgreSQL | 2.9.3 / 4.x |
+
+Requires PostgreSQL (any reasonably current version; only stock SQL + native partitioning is used).
+
+## Run locally
+
+**Prerequisites:** .NET 10 SDK, and Docker (for a local Postgres and for the integration tests).
 
 ```bash
+# A throwaway Postgres for local dev:
+docker run --rm -d --name loc-pg -e POSTGRES_PASSWORD=devpassword \
+  -e POSTGRES_USER=lupira_location_user -e POSTGRES_DB=lupira_location -p 5432:5432 postgres:17
+
+# Build, test, run:
 dotnet build LupiraLocationApi.slnx -c Release
-dotnet test  LupiraLocationApi.slnx -c Release      # Server.Tests use Testcontainers (Docker required)
-# Apply schema (location + telemetry) to a local/prod DB:
+dotnet test  LupiraLocationApi.slnx -c Release        # Server.Tests spin up Postgres via Testcontainers
+dotnet run --project src/LupiraLocationApi             # listens on http://localhost:5260 (Development)
+```
+
+The default local connection string (`Host=localhost;Port=5432;Database=lupira_location;Username=lupira_location_user;Password=devpassword`)
+matches the container above; override it with `ConnectionStrings__Postgres`.
+
+### Apply the schema
+
+Schema is applied deliberately (not on boot). Run the one-shot apply against a fresh database — it creates
+both the Marten `location` schema and the raw `telemetry` schema (tables + initial partitions):
+
+```bash
 dotnet run --project src/LupiraLocationApi -- --apply-schema
 ```
 
-In Development, authenticate REST calls with `X-Dev-User: you@example.com`; ingest calls use
-`Authorization: DeviceKey {keyId}.{secret}` (from `POST /api/devices`).
+### Dev-auth on-ramp
 
-A custom mobile app (built separately) pushes GPS telemetry to the ingest endpoints.
+In the **Development** environment the API accepts a dev identity header so you can exercise `/api` without
+an OIDC provider:
+
+```bash
+# Acts as you@example.com (JIT-provisions a Principal on first call):
+curl -H "X-Dev-User: you@example.com" http://localhost:5260/api/me
+
+# Register a device — the response includes a one-time apiKey ("{keyId}.{secret}"):
+curl -X POST -H "X-Dev-User: you@example.com" -H "Content-Type: application/json" \
+  -d '{"kind":"Phone","label":"My phone"}' http://localhost:5260/api/devices
+
+# Ingest a fix with that key (NDJSON, one JSON object per line):
+curl -X POST -H "Authorization: DeviceKey <keyId>.<secret>" \
+  -H "Content-Type: application/x-ndjson" \
+  --data-binary $'{"seq":1,"ts":"2026-01-01T12:00:00Z","lat":59.33,"lon":18.07,"accuracy_m":8,"activity":"Walk"}\n' \
+  http://localhost:5260/api/ingest/location
+```
+
+The dev header scheme is registered **only** when the environment is Development; in any other environment
+`/api` requires a valid OIDC bearer token.
+
+## Configuration
+
+All configuration is environment-driven (double-underscore maps to nested keys, e.g. `Auth__Authority`).
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `ConnectionStrings__Postgres` | yes (prod) | local dev string | Postgres connection (both schemas live in one DB). |
+| `Auth__Authority` | yes (prod) | — | OIDC issuer URL. The API only *validates* JWTs (resource server); any OIDC provider works. |
+| `Auth__Audience` | yes (prod) | — | Expected token audience. |
+| `Nominatim__BaseUrl` | no | empty | Base URL of a [Nominatim](https://nominatim.org) instance for reverse-geocoded place labels. Empty disables labelling (cache-only / null). |
+| `Telemetry__LocationRetentionDays` | no | `90` | Raw-fix retention; older partitions are dropped. |
+| `Telemetry__MaintenanceEnabled` | no | `true` | Toggles the background partition/rollup/retention service. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | no | empty | OTLP collector endpoint. Telemetry export is **enabled only when this is set**; otherwise it is a no-op. |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` / `OTEL_EXPORTER_OTLP_HEADERS` / `OTEL_RESOURCE_ATTRIBUTES` | no | — | Standard OpenTelemetry SDK knobs, read by the exporter directly. |
+
+Ingest authentication needs no configuration — keys are minted per device at registration and only their
+hash is stored.
+
+## Deploy (Docker / Compose)
+
+The image is a standard multi-stage .NET build ([Dockerfile](Dockerfile)); it listens on `8080`.
+
+```bash
+docker build -t lupira-location-api .
+docker run --rm -p 8080:8080 \
+  -e ConnectionStrings__Postgres="Host=db;Port=5432;Database=lupira_location;Username=lupira_location_user;Password=..." \
+  -e Auth__Authority="https://your-oidc-issuer/" \
+  -e Auth__Audience="lupira-location" \
+  lupira-location-api
+```
+
+[deploy/compose.yaml](deploy/compose.yaml) is a sample Compose service definition. Its default hostnames,
+networks, image name, and port are the author's own and are meant as **overridable samples** — set the env
+to your own values before deploying. [deploy/db/grants.sql](deploy/db/grants.sql) provisions an isolated
+role + database. Apply the schema once with `--apply-schema` (above) before first traffic.
+
+### Health probes
+
+- `GET /livez` — liveness; always 200 if the process is up (no dependency checks).
+- `GET /readyz` — readiness; 200 only when Postgres is reachable.
+
+## CI
+
+[GitHub Actions](.github/workflows): `ci.yml` restores, builds, and runs the full unit + Testcontainers
+integration suite on every PR and branch. `release.yml` re-runs that on merge to `main` (and on `v*` tags)
+and builds + pushes the container image.
+
+## Project layout
+
+```
+src/
+  LupiraLocationApi.Core/      class library — no ASP.NET dependency
+    Domain/                    Principal, Device, DeviceApiKey, Telemetry/* (Visits/Trips/etc.), enums
+    Application/               transport-neutral services + OpResult; Telemetry/ ingest/query/rollup
+    Dtos/  Mappers/            request/response shapes + mapping
+  LupiraLocationApi/           ASP.NET host (thin transport/composition layer)
+    Endpoints/                 Minimal-API route groups
+    Handlers/                  endpoint handlers (call Core services)
+    Auth/                      OIDC + device-key + dev-header schemes, CurrentUser
+    Http/                      OpResult -> RFC 7807 ProblemDetails mapping
+    Health/  Background/       readiness check; partition/rollup/retention service
+tests/
+  LupiraLocationApi.Core.Tests/      unit tests (pure helpers, value objects)
+  LupiraLocationApi.Server.Tests/    integration tests (Testcontainers Postgres)
+deploy/                        sample compose.yaml + db/grants.sql
+docs/                          architecture.md
+```
+
+## License
+
+[MIT](LICENSE) © 2026 Daniel Broström.

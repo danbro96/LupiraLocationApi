@@ -7,7 +7,7 @@ using NpgsqlTypes;
 namespace LupiraLocationApi.Application.Telemetry;
 
 /// <summary>Derives Visits (stay-points), Trips (movement between stays), and a DailyLocationSummary from a day's raw
-/// fixes, and materializes them as Marten docs in the <c>health</c> schema (so they survive raw-GPS retention drop).
+/// fixes, and materializes them as Marten docs in the <c>location</c> schema (so they survive raw-GPS retention drop).
 /// OS-activity-primed stay-point detection: a Visit opens when consecutive points stay within <c>roamRadius</c> for at
 /// least <c>minDwell</c>. The rollup is idempotent — re-running a day replaces that day+device's docs.</summary>
 public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession session, PlaceLabelService labels)

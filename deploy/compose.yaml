@@ -1,6 +1,11 @@
-# lupira-location-api — TrueNAS Custom App `lupira-location-api`.
+# Sample Compose definition for lupira-location-api.
 # Single .NET 10 service: REST (/api) for device management + location query, DeviceKey-authed location telemetry ingest,
-# over its OWN Postgres (lupira_location). Isolated in a separate DB+role from the other Lupira apps (no cross-grants).
+# over its OWN Postgres database. Authoritative copy of this file lives in the repo at deploy/compose.yaml.
+#
+# NOTE: the default hostnames, network names, image, and port below are the author's own and are SAMPLES.
+# Every value is ${VAR:-default}-overridable — set the env (issuer URL, DB host/password, image, port, networks)
+# to your own environment before deploying. The external `*_data` / `*_telemetry` networks are the author's;
+# replace them (or drop to a single bridge network) for a generic deployment.
 services:
   lupira-location-api:
     image: danbro96/lupira-location-api:${IMAGE_TAG:-latest}

@@ -1,7 +1,7 @@
 namespace LupiraLocationApi.Domain.Telemetry;
 
 /// <summary>A reverse-geocoded place name, cached and keyed by a quantized (~100 m grid) coordinate so nearby fixes share
-/// one entry. Lives in <c>health</c>; lets raw GPS keep short retention without losing resolved names.</summary>
+/// one entry. Lives in <c>location</c>; lets raw GPS keep short retention without losing resolved names.</summary>
 public sealed class PlaceLabel
 {
     public Guid Id { get; set; }            // == MakeId(quantized lat, quantized lon)

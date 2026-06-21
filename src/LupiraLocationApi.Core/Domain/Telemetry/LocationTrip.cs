@@ -1,6 +1,6 @@
 namespace LupiraLocationApi.Domain.Telemetry;
 
-/// <summary>Movement between two stays. Materialized by the rollup job into the <c>health</c> schema.</summary>
+/// <summary>Movement between two stays. Materialized by the rollup job into the <c>location</c> schema.</summary>
 public sealed class LocationTrip
 {
     public Guid Id { get; set; }
