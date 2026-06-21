@@ -31,11 +31,14 @@ See [docs/architecture.md](docs/architecture.md) for the full design and the dom
 |---|---|---|---|
 | REST (owner) | `/api` | OIDC JWT (`ApiPolicy`) | Device management + location query/control. |
 | Ingest (uploader) | `/api/ingest` | Per-device key (`IngestPolicy`) | `Authorization: DeviceKey {keyId}.{secret}`. |
+| MCP (agent) | `/api/mcp` | OIDC JWT (`ApiPolicy`) | Streamable HTTP. Read-only, derived/coarse tools — no raw track, no mutations. |
 | Health | `/livez`, `/readyz` | none | Liveness / readiness (Postgres reachable). |
 | OpenAPI | `/openapi/v1.json` | none | Generated OpenAPI document. |
 | API reference | `/scalar/v1` | none | [Scalar](https://github.com/scalar/scalar) interactive UI. |
 
-There is **no MCP / agent surface** — this service is REST + ingest only.
+The **MCP surface is intended to be LAN/WireGuard-only**: it shares the process, DB, and OIDC bearer with
+REST, and a defence-in-depth backstop 404s any `/api/mcp` request that arrives bearing reverse-proxy edge
+headers (`CF-Ray` / `CF-Connecting-IP`). Keep it off the public internet at your ingress.
 
 ### Route map
 
@@ -70,6 +73,19 @@ Ingest — `IngestPolicy` (per-device key):
 | GET | `/api/ingest/location/cursor` | The device's resume cursor (last accepted `seq` + `ts`). |
 | GET | `/api/ingest/location/state` | Whether tracking is paused (the uploader should stop collecting if so). |
 
+MCP — `ApiPolicy` (OIDC JWT), Streamable HTTP at `/api/mcp`. Read-only and derived/coarse by design — no
+raw lat·lon track tools, no mutations. Tools call the same Core services as REST, scoped to the caller:
+
+| Tool | Maps to | Returns |
+|---|---|---|
+| `me` | identity | The caller's resolved local identity. |
+| `list_devices` | `/api/devices` (list) | The caller's devices (to scope `movement_stats`). |
+| `list_visits` | `/api/location/visits` | Materialized stay-points over a range. |
+| `list_trips` | `/api/location/trips` | Materialized trips over a range. |
+| `daily_summary` | `/api/location/summary` | Per-day rollup. |
+| `place_at` | `/api/location/at` | Coarse place label at a timestamp (never the raw fix). |
+| `movement_stats` | `/api/location/stats` | Distance + speed stats over a range (no coordinates). |
+
 ## Tech stack
 
 | Area | Choice | Version |
@@ -80,6 +96,7 @@ Ingest — `IngestPolicy` (per-device key):
 | Time-series | Raw Npgsql over native range-partitioned tables | (Npgsql via Marten) |
 | OpenAPI | `Microsoft.AspNetCore.OpenApi` | 10.0.9 |
 | Auth | `Microsoft.AspNetCore.Authentication.JwtBearer` | 10.0.9 |
+| Agent surface | `ModelContextProtocol.AspNetCore` (MCP, Streamable HTTP) | 1.4.0 |
 | API reference UI | `Scalar.AspNetCore` | 2.16.4 |
 | Telemetry | OpenTelemetry (traces/metrics/logs, OTLP exporter) | 1.16.x / 1.15.x |
 | Tests | xUnit + Testcontainers for PostgreSQL | 2.9.3 / 4.x |
@@ -192,8 +209,9 @@ src/
     Application/               transport-neutral services + OpResult; Telemetry/ ingest/query/rollup
     Dtos/  Mappers/            request/response shapes + mapping
   LupiraLocationApi/           ASP.NET host (thin transport/composition layer)
-    Endpoints/                 Minimal-API route groups
+    Endpoints/                 Minimal-API route groups (+ McpExposure LAN-only backstop)
     Handlers/                  endpoint handlers (call Core services)
+    Mcp/                       MCP agent tools (read-only; call Core services directly)
     Auth/                      OIDC + device-key + dev-header schemes, CurrentUser
     Http/                      OpResult -> RFC 7807 ProblemDetails mapping
     Health/  Background/       readiness check; partition/rollup/retention service

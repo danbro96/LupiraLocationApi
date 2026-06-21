@@ -18,9 +18,19 @@ The solution is two projects, and the split is the architectural boundary:
 
 ```
 HTTP ─▶ Endpoints/ ─▶ Handlers/ ─▶ Core: Application services ─▶ Marten (location) + Npgsql (telemetry)
-                          │                     │
-                       Auth/ (CurrentUser)   OpResult  ──▶  Http/ (RFC 7807) on the way back
+  │                       │                     │
+  └─ MCP ─▶ Mcp/ tools ───┘                  OpResult  ──▶  Http/ (RFC 7807) on the way back
+                       Auth/ (CurrentUser)
 ```
+
+A second thin transport adapter, **`Mcp/`** ([LocationTools.cs](../src/LupiraLocationApi/Mcp/LocationTools.cs)),
+exposes the bounded context to an LLM agent over MCP (Streamable HTTP, `ModelContextProtocol.AspNetCore`).
+Its tools call the **same Core services** as the handlers — no second source of truth — and resolve identity
+through the same `CurrentUser`, so every call is scoped to the caller's principal. The surface is deliberately
+**read-only and derived/coarse**: it offers visits, trips, daily summaries, coarse place-at, and movement
+stats, but no raw-track tools and no mutations. It is gated by `ApiPolicy` and meant to stay LAN/WireGuard-only
+— [Endpoints/McpExposure.cs](../src/LupiraLocationApi/Endpoints/McpExposure.cs) 404s any `/api/mcp` request
+carrying reverse-proxy edge headers as a defence-in-depth backstop.
 
 Composition: [Program.cs](../src/LupiraLocationApi/Program.cs) registers the context via
 `AddLocationCore()` ([CoreServiceCollectionExtensions.cs](../src/LupiraLocationApi.Core/CoreServiceCollectionExtensions.cs)),

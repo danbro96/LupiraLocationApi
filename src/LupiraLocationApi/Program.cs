@@ -4,6 +4,7 @@ using LupiraLocationApi.Domain;
 using LupiraLocationApi.Endpoints;
 using LupiraLocationApi.Handlers;
 using LupiraLocationApi.Health;
+using LupiraLocationApi.Mcp;
 using LupiraLocationApi.Telemetry;
 using Marten;
 using Microsoft.AspNetCore.Authentication;
@@ -30,6 +31,10 @@ builder.Services.AddScoped<MeHandler>();
 builder.Services.AddScoped<DevicesHandler>();
 builder.Services.AddScoped<LocationIngestHandler>();
 builder.Services.AddScoped<LocationQueryHandler>();
+
+// MCP server for the agent (read-only, derived/coarse tools), mounted at /api/mcp over Streamable HTTP.
+// LAN/WireGuard-only — not published through the tunnel (see UseMcpLanOnly + the MapMcp call below).
+builder.Services.AddMcpServer().WithHttpTransport().WithTools<LocationTools>();
 
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -107,6 +112,9 @@ if (args.Contains("--apply-schema"))
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Defence-in-depth: 404 any /api/mcp request that arrives bearing Cloudflare edge headers.
+app.UseMcpLanOnly();
+
 app.MapOpenApi();   // /openapi/v1.json
 app.MapScalarApiReference();   // /scalar/v1
 
@@ -120,6 +128,9 @@ app.MapMe();
 app.MapDevices();
 app.MapIngest();
 app.MapLocationQuery();
+
+// Agent MCP transport (LAN/WireGuard-only; excluded from the Cloudflare Tunnel at the edge).
+app.MapMcp("/api/mcp").RequireAuthorization("ApiPolicy");
 
 app.Run();
 
