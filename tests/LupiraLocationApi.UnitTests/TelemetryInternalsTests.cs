@@ -2,7 +2,7 @@ using LupiraLocationApi.Application.Telemetry;
 using LupiraLocationApi.Telemetry;
 using Xunit;
 
-namespace LupiraLocationApi.Core.Tests;
+namespace LupiraLocationApi.UnitTests;
 
 public class GeoTests
 {

@@ -2,7 +2,7 @@ using LupiraLocationApi.Domain;
 using LupiraLocationApi.Domain.Telemetry;
 using Xunit;
 
-namespace LupiraLocationApi.Core.Tests;
+namespace LupiraLocationApi.UnitTests;
 
 public class DeviceKeyHashingTests
 {

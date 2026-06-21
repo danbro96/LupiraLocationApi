@@ -4,7 +4,7 @@ using LupiraLocationApi.Domain;
 using LupiraLocationApi.Dtos.Devices;
 using Xunit;
 
-namespace LupiraLocationApi.Server.Tests;
+namespace LupiraLocationApi.IntegrationTests;
 
 public sealed class DevicesTests(LocationApiTestFactory factory) : IntegrationTest(factory)
 {

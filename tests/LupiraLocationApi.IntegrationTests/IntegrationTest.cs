@@ -10,7 +10,7 @@ using LupiraLocationApi.Dtos.Me;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace LupiraLocationApi.Server.Tests;
+namespace LupiraLocationApi.IntegrationTests;
 
 /// <summary>Base for integration tests: shares the container fixture, resets all state before each test, and provides
 /// REST + NDJSON-ingest helpers. Serial within the "integration" collection.</summary>

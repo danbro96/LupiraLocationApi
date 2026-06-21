@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
 
-namespace LupiraLocationApi.Server.Tests;
+namespace LupiraLocationApi.IntegrationTests;
 
 /// <summary>White-box tests for behaviors HTTP can't easily reach: rollup idempotency, on-demand partition creation,
 /// and retention partition-drop. Resolves singletons (NpgsqlDataSource, PartitionManager) + scoped services directly.</summary>

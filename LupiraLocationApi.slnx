@@ -4,7 +4,6 @@
     <Project Path="src/LupiraLocationApi/LupiraLocationApi.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/LupiraLocationApi.Core.Tests/LupiraLocationApi.Core.Tests.csproj" />
-    <Project Path="tests/LupiraLocationApi.Server.Tests/LupiraLocationApi.Server.Tests.csproj" />
+    <Project Path="tests/LupiraLocationApi.UnitTests/LupiraLocationApi.UnitTests.csproj" />
   </Folder>
 </Solution>

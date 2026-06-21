@@ -4,7 +4,7 @@ using LupiraLocationApi.Dtos.Devices;
 using LupiraLocationApi.Dtos.Location;
 using Xunit;
 
-namespace LupiraLocationApi.Server.Tests;
+namespace LupiraLocationApi.IntegrationTests;
 
 /// <summary>Principal isolation: a user can only see their own telemetry and only manage their own devices. Telemetry
 /// queries hard-filter principal_id = caller; device ops are ownership-checked.</summary>

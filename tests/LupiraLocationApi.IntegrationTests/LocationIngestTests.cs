@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using LupiraLocationApi.Dtos.Location;
 using Xunit;
 
-namespace LupiraLocationApi.Server.Tests;
+namespace LupiraLocationApi.IntegrationTests;
 
 public sealed class LocationIngestTests(LocationApiTestFactory factory) : IntegrationTest(factory)
 {

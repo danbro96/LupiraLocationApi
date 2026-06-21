@@ -4,7 +4,7 @@ using LupiraLocationApi.Domain;
 using LupiraLocationApi.Dtos.Devices;
 using Xunit;
 
-namespace LupiraLocationApi.Server.Tests;
+namespace LupiraLocationApi.IntegrationTests;
 
 /// <summary>Cross-cutting authentication: unauthenticated requests are rejected, and each surface only accepts its own
 /// auth scheme (OIDC for the REST surface, device key for /ingest).</summary>
