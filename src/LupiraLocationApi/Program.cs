@@ -32,7 +32,7 @@ builder.Services.AddScoped<DevicesHandler>();
 builder.Services.AddScoped<LocationIngestHandler>();
 builder.Services.AddScoped<LocationQueryHandler>();
 
-// MCP server for the agent (read-only, derived/coarse tools), mounted at /api/mcp over Streamable HTTP.
+// MCP server for the agent (read-only, derived/coarse tools), mounted at /mcp over Streamable HTTP.
 // LAN/WireGuard-only — not published through the tunnel (see UseMcpLanOnly + the MapMcp call below).
 builder.Services.AddMcpServer().WithHttpTransport().WithTools<LocationTools>();
 
@@ -42,7 +42,7 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 // Background maintenance: partition provisioning + nightly rollup + retention drop (gated by config).
 builder.Services.AddHostedService<LocationMaintenanceService>();
 
-// --- Auth: OIDC JWT for /api (human reads/writes); per-device API key for /api/ingest (the mobile uploader).
+// --- Auth: OIDC JWT for the REST surface (human reads/writes); per-device API key for /ingest (the mobile uploader).
 //           One identity authority (Authentik); the OIDC `sub` is the only cross-service join key. ---
 var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -112,7 +112,7 @@ if (args.Contains("--apply-schema"))
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Defence-in-depth: 404 any /api/mcp request that arrives bearing Cloudflare edge headers.
+// Defence-in-depth: 404 any /mcp request that arrives bearing Cloudflare edge headers.
 app.UseMcpLanOnly();
 
 app.MapOpenApi();   // /openapi/v1.json
@@ -130,7 +130,7 @@ app.MapIngest();
 app.MapLocationQuery();
 
 // Agent MCP transport (LAN/WireGuard-only; excluded from the Cloudflare Tunnel at the edge).
-app.MapMcp("/api/mcp").RequireAuthorization("ApiPolicy");
+app.MapMcp("/mcp").RequireAuthorization("ApiPolicy");
 
 app.Run();
 

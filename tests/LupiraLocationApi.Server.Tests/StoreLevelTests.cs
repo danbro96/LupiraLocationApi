@@ -28,7 +28,7 @@ public sealed class StoreLevelTests(LocationApiTestFactory factory) : Integratio
 
         var from = Q(baseTs.AddHours(-1));
         var to = Q(baseTs.AddHours(2));
-        Assert.Single((await api.GetFromJsonAsync<List<LocationVisitDto>>($"/api/location/visits?from={from}&to={to}"))!);
+        Assert.Single((await api.GetFromJsonAsync<List<LocationVisitDto>>($"/location/visits?from={from}&to={to}"))!);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public sealed class StoreLevelTests(LocationApiTestFactory factory) : Integratio
         // Three fixes in three different ISO weeks — each lands in its own on-demand partition.
         await IngestLocationAsync(key, [Fix(1, now.AddDays(-15), 59.3, 18.0), Fix(2, now.AddDays(-8), 59.3, 18.0), Fix(3, now.AddMinutes(-1), 59.3, 18.0)]);
 
-        var all = await api.GetFromJsonAsync<List<TrackPointDto>>($"/api/location/track?from={Q(now.AddDays(-30))}&to={Q(now.AddMinutes(1))}");
+        var all = await api.GetFromJsonAsync<List<TrackPointDto>>($"/location/track?from={Q(now.AddDays(-30))}&to={Q(now.AddMinutes(1))}");
         Assert.Equal(3, all!.Count);
     }
 
@@ -59,7 +59,7 @@ public sealed class StoreLevelTests(LocationApiTestFactory factory) : Integratio
             await partitions.DropExpiredAsync(conn, "location_point", PartitionInterval.Weekly, now.AddDays(-30));
 
         // Old partition gone; recent data intact.
-        Assert.Empty((await api.GetFromJsonAsync<List<TrackPointDto>>($"/api/location/track?from={Q(old.AddDays(-1))}&to={Q(old.AddDays(1))}"))!);
-        Assert.Single((await api.GetFromJsonAsync<List<TrackPointDto>>($"/api/location/track?from={Q(now.AddHours(-1))}&to={Q(now.AddMinutes(1))}"))!);
+        Assert.Empty((await api.GetFromJsonAsync<List<TrackPointDto>>($"/location/track?from={Q(old.AddDays(-1))}&to={Q(old.AddDays(1))}"))!);
+        Assert.Single((await api.GetFromJsonAsync<List<TrackPointDto>>($"/location/track?from={Q(now.AddHours(-1))}&to={Q(now.AddMinutes(1))}"))!);
     }
 }

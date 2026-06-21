@@ -9,7 +9,7 @@ public static class IngestEndpoints
 {
     public static IEndpointRouteBuilder MapIngest(this IEndpointRouteBuilder app)
     {
-        var g = app.MapGroup("/api/ingest").RequireAuthorization("IngestPolicy").WithTags("Ingest");
+        var g = app.MapGroup("/ingest").RequireAuthorization("IngestPolicy").WithTags("Ingest");
 
         g.MapPost("/location", (LocationIngestHandler h, CancellationToken ct) => h.IngestAsync(ct))
             .WithSummary("Ingest a batch of GPS fixes (NDJSON, one fix per line).")

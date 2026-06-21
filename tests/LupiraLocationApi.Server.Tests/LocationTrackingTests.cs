@@ -13,8 +13,8 @@ public sealed class LocationTrackingTests(LocationApiTestFactory factory) : Inte
         var api = Factory.ApiClient("alice@x.test");
         var (_, _, deviceId) = await SetupDeviceAsync(api);
 
-        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsJsonAsync($"/api/location/tracking/{deviceId}/pause", new PauseTrackingRequest { Reason = "battery saver" })).StatusCode);
-        var state = await api.GetFromJsonAsync<TrackingStateDto>($"/api/location/tracking/{deviceId}/state");
+        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsJsonAsync($"/location/tracking/{deviceId}/pause", new PauseTrackingRequest { Reason = "battery saver" })).StatusCode);
+        var state = await api.GetFromJsonAsync<TrackingStateDto>($"/location/tracking/{deviceId}/state");
         Assert.True(state!.Paused);
         Assert.Equal("battery saver", state.Reason);
         Assert.NotNull(state.PausedAt);
@@ -25,10 +25,10 @@ public sealed class LocationTrackingTests(LocationApiTestFactory factory) : Inte
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, _, deviceId) = await SetupDeviceAsync(api);
-        await api.PostAsJsonAsync($"/api/location/tracking/{deviceId}/pause", new PauseTrackingRequest { Reason = "x" });
-        await api.PostAsync($"/api/location/tracking/{deviceId}/resume", null);
+        await api.PostAsJsonAsync($"/location/tracking/{deviceId}/pause", new PauseTrackingRequest { Reason = "x" });
+        await api.PostAsync($"/location/tracking/{deviceId}/resume", null);
 
-        var state = await api.GetFromJsonAsync<TrackingStateDto>($"/api/location/tracking/{deviceId}/state");
+        var state = await api.GetFromJsonAsync<TrackingStateDto>($"/location/tracking/{deviceId}/state");
         Assert.False(state!.Paused);
         Assert.Null(state.Reason);
         Assert.Null(state.PausedAt);
@@ -39,9 +39,9 @@ public sealed class LocationTrackingTests(LocationApiTestFactory factory) : Inte
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, _, deviceId) = await SetupDeviceAsync(api);
-        await api.PostAsync($"/api/location/tracking/{deviceId}/pause", null);
-        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsync($"/api/location/tracking/{deviceId}/pause", null)).StatusCode);
-        Assert.True((await api.GetFromJsonAsync<TrackingStateDto>($"/api/location/tracking/{deviceId}/state"))!.Paused);
+        await api.PostAsync($"/location/tracking/{deviceId}/pause", null);
+        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsync($"/location/tracking/{deviceId}/pause", null)).StatusCode);
+        Assert.True((await api.GetFromJsonAsync<TrackingStateDto>($"/location/tracking/{deviceId}/state"))!.Paused);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class LocationTrackingTests(LocationApiTestFactory factory) : Inte
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, _, deviceId) = await SetupDeviceAsync(api);
-        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsync($"/api/location/tracking/{deviceId}/resume", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsync($"/location/tracking/{deviceId}/resume", null)).StatusCode);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class LocationTrackingTests(LocationApiTestFactory factory) : Inte
     {
         var api = Factory.ApiClient("alice@x.test");
         await GetMeAsync(api);
-        var state = await api.GetFromJsonAsync<TrackingStateDto>($"/api/location/tracking/{Guid.NewGuid()}/state");
+        var state = await api.GetFromJsonAsync<TrackingStateDto>($"/location/tracking/{Guid.NewGuid()}/state");
         Assert.False(state!.Paused);
     }
 
@@ -66,8 +66,8 @@ public sealed class LocationTrackingTests(LocationApiTestFactory factory) : Inte
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, key, deviceId) = await SetupDeviceAsync(api);
-        await api.PostAsync($"/api/location/tracking/{deviceId}/pause", null);
-        var state = await key.GetFromJsonAsync<TrackingStateDto>("/api/ingest/location/state");
+        await api.PostAsync($"/location/tracking/{deviceId}/pause", null);
+        var state = await key.GetFromJsonAsync<TrackingStateDto>("/ingest/location/state");
         Assert.True(state!.Paused);
     }
 }

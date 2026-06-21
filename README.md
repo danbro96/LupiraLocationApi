@@ -29,15 +29,15 @@ See [docs/architecture.md](docs/architecture.md) for the full design and the dom
 
 | Surface | Base path | Auth | Notes |
 |---|---|---|---|
-| REST (owner) | `/api` | OIDC JWT (`ApiPolicy`) | Device management + location query/control. |
-| Ingest (uploader) | `/api/ingest` | Per-device key (`IngestPolicy`) | `Authorization: DeviceKey {keyId}.{secret}`. |
-| MCP (agent) | `/api/mcp` | OIDC JWT (`ApiPolicy`) | Streamable HTTP. Read-only, derived/coarse tools — no raw track, no mutations. |
+| REST (owner) | `/` (root) | OIDC JWT (`ApiPolicy`) | Device management + location query/control. |
+| Ingest (uploader) | `/ingest` | Per-device key (`IngestPolicy`) | `Authorization: DeviceKey {keyId}.{secret}`. |
+| MCP (agent) | `/mcp` | OIDC JWT (`ApiPolicy`) | Streamable HTTP. Read-only, derived/coarse tools — no raw track, no mutations. |
 | Health | `/livez`, `/readyz` | none | Liveness / readiness (Postgres reachable). |
 | OpenAPI | `/openapi/v1.json` | none | Generated OpenAPI document. |
 | API reference | `/scalar/v1` | none | [Scalar](https://github.com/scalar/scalar) interactive UI. |
 
 The **MCP surface is intended to be LAN/WireGuard-only**: it shares the process, DB, and OIDC bearer with
-REST, and a defence-in-depth backstop 404s any `/api/mcp` request that arrives bearing reverse-proxy edge
+REST, and a defence-in-depth backstop 404s any `/mcp` request that arrives bearing reverse-proxy edge
 headers (`CF-Ray` / `CF-Connecting-IP`). Keep it off the public internet at your ingress.
 
 ### Route map
@@ -46,45 +46,45 @@ REST — `ApiPolicy` (OIDC JWT):
 
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/api/me` | The caller's resolved local identity (JIT-provisioned). |
-| GET | `/api/devices` | List the caller's devices. |
-| POST | `/api/devices` | Register a device; returns the one-time ingest API key. |
-| PUT | `/api/devices/{id}` | Rename a device. |
-| DELETE | `/api/devices/{id}` | Retire a device (revokes its ingest keys). |
-| GET | `/api/location/current` | Latest known location per device. |
-| GET | `/api/location/track` | Raw track over a time range (capped). |
-| GET | `/api/location/track/thinned` | Server-downsampled track (one best-accuracy fix per bucket). |
-| GET | `/api/location/stats` | Distance + speed stats over a range. |
-| GET | `/api/location/bbox` | Fixes within a lat/lon rectangle over a range. |
-| GET | `/api/location/at` | Coarse place label at a timestamp (never the raw fix). |
-| GET | `/api/location/visits` | Materialized stay-points over a range. |
-| GET | `/api/location/trips` | Materialized trips over a range. |
-| GET | `/api/location/summary` | Per-day location rollup. |
-| DELETE | `/api/location` | Purge raw fixes + derived docs in a range (owner erase). |
-| POST | `/api/location/tracking/{deviceId}/pause` | Pause tracking (ingest discarded while paused). |
-| POST | `/api/location/tracking/{deviceId}/resume` | Resume tracking. |
-| GET | `/api/location/tracking/{deviceId}/state` | Tracking state for a device. |
+| GET | `/me` | The caller's resolved local identity (JIT-provisioned). |
+| GET | `/devices` | List the caller's devices. |
+| POST | `/devices` | Register a device; returns the one-time ingest API key. |
+| PUT | `/devices/{id}` | Rename a device. |
+| DELETE | `/devices/{id}` | Retire a device (revokes its ingest keys). |
+| GET | `/location/current` | Latest known location per device. |
+| GET | `/location/track` | Raw track over a time range (capped). |
+| GET | `/location/track/thinned` | Server-downsampled track (one best-accuracy fix per bucket). |
+| GET | `/location/stats` | Distance + speed stats over a range. |
+| GET | `/location/bbox` | Fixes within a lat/lon rectangle over a range. |
+| GET | `/location/at` | Coarse place label at a timestamp (never the raw fix). |
+| GET | `/location/visits` | Materialized stay-points over a range. |
+| GET | `/location/trips` | Materialized trips over a range. |
+| GET | `/location/summary` | Per-day location rollup. |
+| DELETE | `/location` | Purge raw fixes + derived docs in a range (owner erase). |
+| POST | `/location/tracking/{deviceId}/pause` | Pause tracking (ingest discarded while paused). |
+| POST | `/location/tracking/{deviceId}/resume` | Resume tracking. |
+| GET | `/location/tracking/{deviceId}/state` | Tracking state for a device. |
 
 Ingest — `IngestPolicy` (per-device key):
 
 | Method | Route | Purpose |
 |---|---|---|
-| POST | `/api/ingest/location` | Ingest a batch of GPS fixes (NDJSON, one fix per line). |
-| GET | `/api/ingest/location/cursor` | The device's resume cursor (last accepted `seq` + `ts`). |
-| GET | `/api/ingest/location/state` | Whether tracking is paused (the uploader should stop collecting if so). |
+| POST | `/ingest/location` | Ingest a batch of GPS fixes (NDJSON, one fix per line). |
+| GET | `/ingest/location/cursor` | The device's resume cursor (last accepted `seq` + `ts`). |
+| GET | `/ingest/location/state` | Whether tracking is paused (the uploader should stop collecting if so). |
 
-MCP — `ApiPolicy` (OIDC JWT), Streamable HTTP at `/api/mcp`. Read-only and derived/coarse by design — no
+MCP — `ApiPolicy` (OIDC JWT), Streamable HTTP at `/mcp`. Read-only and derived/coarse by design — no
 raw lat·lon track tools, no mutations. Tools call the same Core services as REST, scoped to the caller:
 
 | Tool | Maps to | Returns |
 |---|---|---|
 | `me` | identity | The caller's resolved local identity. |
-| `list_devices` | `/api/devices` (list) | The caller's devices (to scope `movement_stats`). |
-| `list_visits` | `/api/location/visits` | Materialized stay-points over a range. |
-| `list_trips` | `/api/location/trips` | Materialized trips over a range. |
-| `daily_summary` | `/api/location/summary` | Per-day rollup. |
-| `place_at` | `/api/location/at` | Coarse place label at a timestamp (never the raw fix). |
-| `movement_stats` | `/api/location/stats` | Distance + speed stats over a range (no coordinates). |
+| `list_devices` | `/devices` (list) | The caller's devices (to scope `movement_stats`). |
+| `list_visits` | `/location/visits` | Materialized stay-points over a range. |
+| `list_trips` | `/location/trips` | Materialized trips over a range. |
+| `daily_summary` | `/location/summary` | Per-day rollup. |
+| `place_at` | `/location/at` | Coarse place label at a timestamp (never the raw fix). |
+| `movement_stats` | `/location/stats` | Distance + speed stats over a range (no coordinates). |
 
 ## Tech stack
 
@@ -137,17 +137,17 @@ an OIDC provider:
 
 ```bash
 # Acts as you@example.com (JIT-provisions a Principal on first call):
-curl -H "X-Dev-User: you@example.com" http://localhost:5260/api/me
+curl -H "X-Dev-User: you@example.com" http://localhost:5260/me
 
 # Register a device — the response includes a one-time apiKey ("{keyId}.{secret}"):
 curl -X POST -H "X-Dev-User: you@example.com" -H "Content-Type: application/json" \
-  -d '{"kind":"Phone","label":"My phone"}' http://localhost:5260/api/devices
+  -d '{"kind":"Phone","label":"My phone"}' http://localhost:5260/devices
 
 # Ingest a fix with that key (NDJSON, one JSON object per line):
 curl -X POST -H "Authorization: DeviceKey <keyId>.<secret>" \
   -H "Content-Type: application/x-ndjson" \
   --data-binary $'{"seq":1,"ts":"2026-01-01T12:00:00Z","lat":59.33,"lon":18.07,"accuracy_m":8,"activity":"Walk"}\n' \
-  http://localhost:5260/api/ingest/location
+  http://localhost:5260/ingest/location
 ```
 
 The dev header scheme is registered **only** when the environment is Development; in any other environment

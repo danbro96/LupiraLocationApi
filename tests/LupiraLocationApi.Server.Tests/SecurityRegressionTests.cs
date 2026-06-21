@@ -20,11 +20,11 @@ public sealed class SecurityRegressionTests(LocationApiTestFactory factory) : In
         var now = DateTimeOffset.UtcNow;
         await IngestLocationAsync(keyA, [Fix(1, now.AddMinutes(-2), 59.30, 18.00), Fix(2, now.AddMinutes(-1), 59.31, 18.01)]);
 
-        Assert.Single((await a.GetFromJsonAsync<List<CurrentFixDto>>("/api/location/current"))!);
+        Assert.Single((await a.GetFromJsonAsync<List<CurrentFixDto>>("/location/current"))!);
 
         var b = Factory.ApiClient("b@x.test");
-        Assert.Empty((await b.GetFromJsonAsync<List<CurrentFixDto>>("/api/location/current"))!);
-        Assert.Empty((await b.GetFromJsonAsync<List<TrackPointDto>>($"/api/location/track?from={Q(now.AddHours(-1))}&to={Q(now.AddMinutes(1))}"))!);
+        Assert.Empty((await b.GetFromJsonAsync<List<CurrentFixDto>>("/location/current"))!);
+        Assert.Empty((await b.GetFromJsonAsync<List<TrackPointDto>>($"/location/track?from={Q(now.AddHours(-1))}&to={Q(now.AddMinutes(1))}"))!);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class SecurityRegressionTests(LocationApiTestFactory factory) : In
 
         // B passes A's real device id — the principal_id hard-filter means it still matches nothing.
         var b = Factory.ApiClient("b@x.test");
-        Assert.Empty((await b.GetFromJsonAsync<List<CurrentFixDto>>($"/api/location/current?deviceId={regA.Device.Id}"))!);
+        Assert.Empty((await b.GetFromJsonAsync<List<CurrentFixDto>>($"/location/current?deviceId={regA.Device.Id}"))!);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class SecurityRegressionTests(LocationApiTestFactory factory) : In
         var regA = await RegisterDeviceAsync(a);
 
         var b = Factory.ApiClient("b@x.test");
-        Assert.DoesNotContain((await b.GetFromJsonAsync<List<DeviceDto>>("/api/devices"))!, d => d.Id == regA.Device.Id);
-        Assert.Equal(HttpStatusCode.NotFound, (await b.DeleteAsync($"/api/devices/{regA.Device.Id}")).StatusCode);
+        Assert.DoesNotContain((await b.GetFromJsonAsync<List<DeviceDto>>("/devices"))!, d => d.Id == regA.Device.Id);
+        Assert.Equal(HttpStatusCode.NotFound, (await b.DeleteAsync($"/devices/{regA.Device.Id}")).StatusCode);
     }
 }

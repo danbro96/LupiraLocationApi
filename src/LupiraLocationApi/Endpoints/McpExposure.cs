@@ -4,12 +4,12 @@ namespace LupiraLocationApi.Endpoints;
 /// Defence-in-depth backstop keeping the MCP surface LAN/WireGuard-only.
 ///
 /// <para>
-/// The PRIMARY control is the Cloudflare Tunnel ingress simply not routing <c>/api/mcp</c> to the
+/// The PRIMARY control is the Cloudflare Tunnel ingress simply not routing <c>/mcp</c> to the
 /// container (host config, outside this repo — see the deploy notes). This middleware is the
 /// belt-and-suspenders that survives an ingress mistake: Cloudflare's edge stamps <c>CF-Ray</c>/
 /// <c>CF-Connecting-IP</c> on everything that arrives through the tunnel, and a direct
 /// LAN/WireGuard request to the container port never carries them — so a tunnelled request to
-/// <c>/api/mcp*</c> is answered with 404 (indistinguishable from "no such route") before it reaches
+/// <c>/mcp*</c> is answered with 404 (indistinguishable from "no such route") before it reaches
 /// the MCP handler.
 /// </para>
 ///
@@ -18,7 +18,7 @@ namespace LupiraLocationApi.Endpoints;
 /// </summary>
 internal static class McpExposure
 {
-    private const string PathPrefix = "/api/mcp";
+    private const string PathPrefix = "/mcp";
     private static readonly string[] CloudflareHeaders = ["CF-Ray", "CF-Connecting-IP"];
 
     public static IApplicationBuilder UseMcpLanOnly(this WebApplication app)

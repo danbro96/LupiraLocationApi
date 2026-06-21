@@ -9,7 +9,7 @@ public static class LocationQueryEndpoints
 {
     public static IEndpointRouteBuilder MapLocationQuery(this IEndpointRouteBuilder app)
     {
-        var g = app.MapGroup("/api/location").RequireAuthorization("ApiPolicy").WithTags("Location");
+        var g = app.MapGroup("/location").RequireAuthorization("ApiPolicy").WithTags("Location");
 
         g.MapGet("/current", (Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.CurrentAsync(deviceId, ct))
             .WithSummary("Latest known location per device.").Produces<List<CurrentFixDto>>(StatusCodes.Status200OK);

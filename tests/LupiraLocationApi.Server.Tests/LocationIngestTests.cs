@@ -23,11 +23,11 @@ public sealed class LocationIngestTests(LocationApiTestFactory factory) : Integr
         Assert.Equal(0, receipt.Duplicates);
         Assert.Equal(3, receipt.HighWaterSeq);
 
-        var current = await api.GetFromJsonAsync<List<CurrentFixDto>>("/api/location/current");
+        var current = await api.GetFromJsonAsync<List<CurrentFixDto>>("/location/current");
         Assert.Single(current!);
         Assert.Equal(59.302, current![0].Lat, 3);
 
-        var track = await api.GetFromJsonAsync<List<TrackPointDto>>($"/api/location/track?from={Q(now.AddHours(-1))}&to={Q(now.AddMinutes(1))}");
+        var track = await api.GetFromJsonAsync<List<TrackPointDto>>($"/location/track?from={Q(now.AddHours(-1))}&to={Q(now.AddMinutes(1))}");
         Assert.Equal(3, track!.Count);
         Assert.True(track[0].Ts <= track[1].Ts && track[1].Ts <= track[2].Ts);
     }
@@ -54,7 +54,7 @@ public sealed class LocationIngestTests(LocationApiTestFactory factory) : Integr
         var now = DateTimeOffset.UtcNow;
         await IngestLocationAsync(key, Enumerable.Range(1, 5).Select(i => Fix(i, now.AddMinutes(-10 + i), 59.3, 18.0)));
 
-        var cursor = await key.GetFromJsonAsync<LocationCursor>($"/api/ingest/location/cursor?deviceId={deviceId}");
+        var cursor = await key.GetFromJsonAsync<LocationCursor>($"/ingest/location/cursor?deviceId={deviceId}");
         Assert.Equal(5, cursor!.LastSeq);
     }
 
@@ -63,7 +63,7 @@ public sealed class LocationIngestTests(LocationApiTestFactory factory) : Integr
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, key, deviceId) = await SetupDeviceAsync(api);
-        var cursor = await key.GetFromJsonAsync<LocationCursor>($"/api/ingest/location/cursor?deviceId={deviceId}");
+        var cursor = await key.GetFromJsonAsync<LocationCursor>($"/ingest/location/cursor?deviceId={deviceId}");
         Assert.Null(cursor!.LastSeq);
         Assert.Null(cursor.LastTs);
     }
@@ -73,7 +73,7 @@ public sealed class LocationIngestTests(LocationApiTestFactory factory) : Integr
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, key, _) = await SetupDeviceAsync(api);
-        var state = await key.GetFromJsonAsync<TrackingStateDto>("/api/ingest/location/state");
+        var state = await key.GetFromJsonAsync<TrackingStateDto>("/ingest/location/state");
         Assert.False(state!.Paused);
     }
 
@@ -90,7 +90,7 @@ public sealed class LocationIngestTests(LocationApiTestFactory factory) : Integr
         Assert.Equal(1, receipt.Inserted);
         Assert.Equal(1, receipt.Rejected);
 
-        var cursor = await key.GetFromJsonAsync<LocationCursor>($"/api/ingest/location/cursor?deviceId={deviceId}");
+        var cursor = await key.GetFromJsonAsync<LocationCursor>($"/ingest/location/cursor?deviceId={deviceId}");
         Assert.Equal(102, cursor!.LastSeq);
     }
 
@@ -191,13 +191,13 @@ public sealed class LocationIngestTests(LocationApiTestFactory factory) : Integr
     {
         var api = Factory.ApiClient("alice@x.test");
         var (_, key, deviceId) = await SetupDeviceAsync(api);
-        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsync($"/api/location/tracking/{deviceId}/pause", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await api.PostAsync($"/location/tracking/{deviceId}/pause", null)).StatusCode);
 
         var receipt = await IngestLocationAsync(key, [Fix(1, DateTimeOffset.UtcNow.AddMinutes(-1), 59.3, 18.0)]);
         Assert.True(receipt.Paused);
-        Assert.Empty((await api.GetFromJsonAsync<List<CurrentFixDto>>("/api/location/current"))!);
+        Assert.Empty((await api.GetFromJsonAsync<List<CurrentFixDto>>("/location/current"))!);
 
-        await api.PostAsync($"/api/location/tracking/{deviceId}/resume", null);
+        await api.PostAsync($"/location/tracking/{deviceId}/resume", null);
         Assert.Equal(1, (await IngestLocationAsync(key, [Fix(2, DateTimeOffset.UtcNow.AddMinutes(-1), 59.3, 18.0)])).Inserted);
     }
 }

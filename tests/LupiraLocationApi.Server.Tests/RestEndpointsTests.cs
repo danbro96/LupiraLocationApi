@@ -2,7 +2,7 @@ using Xunit;
 
 namespace LupiraLocationApi.Server.Tests;
 
-/// <summary>Generic REST surface: identity (/api/me), JIT-provisioned on first login.</summary>
+/// <summary>Generic REST surface: identity (/me), JIT-provisioned on first login.</summary>
 public sealed class RestEndpointsTests(LocationApiTestFactory factory) : IntegrationTest(factory)
 {
     [Fact]

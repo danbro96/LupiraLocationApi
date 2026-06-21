@@ -7,7 +7,7 @@ public static class DevicesEndpoints
 {
     public static IEndpointRouteBuilder MapDevices(this IEndpointRouteBuilder app)
     {
-        var g = app.MapGroup("/api/devices").RequireAuthorization("ApiPolicy").WithTags("Devices");
+        var g = app.MapGroup("/devices").RequireAuthorization("ApiPolicy").WithTags("Devices");
 
         g.MapGet("/", (DevicesHandler h, CancellationToken ct) => h.ListAsync(ct))
             .WithSummary("List the caller's registered location-tracking devices.")

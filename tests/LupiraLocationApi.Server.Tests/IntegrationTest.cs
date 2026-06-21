@@ -24,17 +24,17 @@ public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLi
 
     // ---- REST fixture helpers ----
 
-    protected static async Task<MeDto> GetMeAsync(HttpClient api) => (await api.GetFromJsonAsync<MeDto>("/api/me"))!;
+    protected static async Task<MeDto> GetMeAsync(HttpClient api) => (await api.GetFromJsonAsync<MeDto>("/me"))!;
     protected static async Task<Guid> GetMyIdAsync(HttpClient api) => (await GetMeAsync(api)).Id;
 
     protected static async Task<RegisterDeviceResponse> RegisterDeviceAsync(HttpClient api, string kind = "Phone", string label = "My Phone")
     {
-        var resp = await api.PostAsJsonAsync("/api/devices", new RegisterDeviceRequest { Kind = Enum.Parse<DeviceKind>(kind), Label = label });
+        var resp = await api.PostAsJsonAsync("/devices", new RegisterDeviceRequest { Kind = Enum.Parse<DeviceKind>(kind), Label = label });
         resp.EnsureSuccessStatusCode();
         return (await resp.Content.ReadFromJsonAsync<RegisterDeviceResponse>())!;
     }
 
-    /// <summary>JIT-provisions the caller (via /api/me), registers a device, and returns its principal id + ingest-key client.</summary>
+    /// <summary>JIT-provisions the caller (via /me), registers a device, and returns its principal id + ingest-key client.</summary>
     protected async Task<(Guid Pid, HttpClient Key, Guid DeviceId)> SetupDeviceAsync(HttpClient api, string kind = "Phone")
     {
         var pid = await GetMyIdAsync(api);
@@ -52,7 +52,7 @@ public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLi
     }
 
     protected static async Task<LocationIngestReceipt> IngestLocationAsync(HttpClient key, IEnumerable<string> lines) =>
-        (await (await PostNdjson(key, "/api/ingest/location", lines)).Content.ReadFromJsonAsync<LocationIngestReceipt>())!;
+        (await (await PostNdjson(key, "/ingest/location", lines)).Content.ReadFromJsonAsync<LocationIngestReceipt>())!;
 
     /// <summary>Triggers the rollup directly (the maintenance BackgroundService is disabled in tests).</summary>
     protected async Task RollupAsync(Guid pid, Guid deviceId, DateOnly day)
