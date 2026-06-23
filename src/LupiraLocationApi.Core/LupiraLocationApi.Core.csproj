@@ -18,7 +18,7 @@
          OpResult + the raw-Npgsql telemetry ingest/query path), Dtos, Mappers. Marten is the document store on the
          `location` schema; the `telemetry` schema is raw partitioned tables written via Npgsql (which flows in
          transitively from Marten). No ASP.NET dependency — that lives in the host. -->
-    <PackageReference Include="Marten" Version="9.6.0" />
+    <PackageReference Include="Marten" Version="9.10.0" />
   </ItemGroup>
 
 </Project>
