@@ -1,6 +1,6 @@
 # Sample Compose definition for lupira-location-api.
-# Single .NET 10 service: REST (/api) for device management + location query, DeviceKey-authed location telemetry ingest,
-# over its OWN Postgres database. Authoritative copy of this file lives in the repo at deploy/compose.yaml.
+# Single .NET 10 service: REST at root for device management + location query, DeviceKey-authed location telemetry ingest,
+# over its OWN Postgres database.
 #
 # NOTE: the default hostnames, network names, image, and port below are the author's own and are SAMPLES.
 # Every value is ${VAR:-default}-overridable — set the env (issuer URL, DB host/password, image, port, networks)
@@ -14,7 +14,7 @@ services:
       # Postgres — Marten `location` schema + raw `telemetry` schema in one DB. NO grant on other apps' databases.
       ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=lupira_location;Username=lupira_location_user;Password=${LUPIRA_LOCATION_DB_PASSWORD:?required}"
 
-      # /api auth — Authentik OIDC (JWT). Same issuer as the other Lupira apps; the OIDC `sub` is the only cross-service join key.
+      # REST auth — Authentik OIDC (JWT). Same issuer as the other Lupira apps; the OIDC `sub` is the only cross-service join key.
       Auth__Authority: ${AUTH_AUTHORITY:-https://auth.lupira.com/application/o/lupira-location/}
       Auth__Audience: ${AUTH_AUDIENCE:-lupira-location}
 
@@ -32,7 +32,7 @@ services:
       OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
       OTEL_METRIC_EXPORT_INTERVAL: ${OTEL_METRIC_EXPORT_INTERVAL:-300000}
-      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-deployment.environment=prod,host.name=medelynas}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-deployment.environment=prod}
     ports:
       - "${HOST_PORT:-41280}:8080"
     healthcheck:
