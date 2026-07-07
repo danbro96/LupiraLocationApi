@@ -7,6 +7,17 @@
     <RootNamespace>LupiraLocationApi</RootNamespace>
   </PropertyGroup>
 
+  <!--
+    Emit the OpenAPI document at build time (no running server / DB) so the JSON spec stays in
+    lockstep with the Map* endpoints. `dotnet build` writes `openapi/LupiraLocationApi.json` at the
+    repo root; Marten is lazy and hosted services never start under doc-gen, so no infra is required.
+  -->
+  <PropertyGroup>
+    <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+    <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiDocumentsDirectory>$(MSBuildThisFileDirectory)..\..\openapi</OpenApiDocumentsDirectory>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Expose internal pure helpers (DeviceKey credential parsing, ingest parsing) for unit testing. -->
     <InternalsVisibleTo Include="LupiraLocationApi.IntegrationTests" />
@@ -22,6 +33,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
