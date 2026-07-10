@@ -30,6 +30,8 @@ public sealed class LocationApiTestFactory : WebApplicationFactory<Program>
             {
                 ["ConnectionStrings:Postgres"] = _postgres.GetConnectionString(),
                 ["Telemetry:MaintenanceEnabled"] = "false",
+                // Dummy issuer for the RFC 9728 metadata document; never contacted (no token is ever validated).
+                ["Auth:Authority"] = "https://auth.test/application/o/lupira-location/",
             }));
     }
 
