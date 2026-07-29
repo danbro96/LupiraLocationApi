@@ -106,8 +106,6 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         });
     }
 
-    // ---- detection ----
-
     private readonly record struct VisitAccum(DateTimeOffset Arrive, DateTimeOffset Depart, double Lat, double Lon, double Radius, int Count);
 
     private static List<VisitAccum> DetectVisits(IReadOnlyList<Pt> p)

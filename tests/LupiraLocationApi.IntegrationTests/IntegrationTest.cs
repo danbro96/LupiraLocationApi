@@ -25,8 +25,6 @@ public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLi
     public async Task InitializeAsync() => await Factory.ResetAsync();
     public Task DisposeAsync() => Task.CompletedTask;
 
-    // ---- REST fixture helpers ----
-
     protected static async Task<MeDto> GetMeAsync(HttpClient api) => (await api.GetFromJsonAsync<MeDto>("/me"))!;
     protected static async Task<Guid> GetMyIdAsync(HttpClient api) => (await GetMeAsync(api)).Id;
 
@@ -45,8 +43,6 @@ public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLi
         return (pid, Factory.DeviceKeyClient(reg.ApiKey), reg.Device.Id);
     }
 
-    // ---- NDJSON ingest helpers ----
-
     protected static Task<HttpResponseMessage> PostNdjson(HttpClient client, string url, IEnumerable<string> lines)
     {
         var content = new StringContent(string.Join('\n', lines), Encoding.UTF8);
@@ -64,8 +60,6 @@ public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLi
         var trips = scope.ServiceProvider.GetRequiredService<TripVisitService>();
         await trips.RollupDayAsync(pid, deviceId, day);
     }
-
-    // ---- payload builders ----
 
     /// <summary>Builds one NDJSON location-fix line (doubles formatted invariant).</summary>
     protected static string Fix(long seq, DateTimeOffset ts, double lat, double lon, double accuracy = 5, double? speed = null,

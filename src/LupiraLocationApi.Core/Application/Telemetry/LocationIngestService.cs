@@ -175,8 +175,6 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
     private static void Arr(NpgsqlCommand cmd, string name, NpgsqlDbType elem, Array value) =>
         cmd.Parameters.Add(new NpgsqlParameter(name, NpgsqlDbType.Array | elem) { Value = value });
 
-    // ---- parsing ----
-
     private static (LocationFix? Fix, string? Reason, long? Seq) ParseFix(string line, DateTimeOffset maxFuture, DateTimeOffset minPast)
     {
         JsonDocument doc;
