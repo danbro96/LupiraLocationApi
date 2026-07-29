@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain;
+namespace LupiraLocationApi.Domain.Identity;
 
 /// <summary>
 /// An identity (plain document, JIT-provisioned from Authentik), local to this service. <see cref="AuthentikSub"/>

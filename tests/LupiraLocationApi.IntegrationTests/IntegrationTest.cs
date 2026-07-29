@@ -1,13 +1,14 @@
-using System.Globalization;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text;
+using Marten;
 using LupiraLocationApi.Application.Telemetry;
 using LupiraLocationApi.Domain;
 using LupiraLocationApi.Dtos.Devices;
 using LupiraLocationApi.Dtos.Location;
 using LupiraLocationApi.Dtos.Me;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text;
 using Xunit;
 
 namespace LupiraLocationApi.IntegrationTests;
@@ -18,6 +19,8 @@ namespace LupiraLocationApi.IntegrationTests;
 public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLifetime
 {
     protected readonly LocationApiTestFactory Factory = factory;
+
+    protected IDocumentStore Store => Factory.Store;
 
     public async Task InitializeAsync() => await Factory.ResetAsync();
     public Task DisposeAsync() => Task.CompletedTask;

@@ -1,4 +1,5 @@
 using LupiraLocationApi.Application;
+using LupiraLocationApi.Domain.Identity;
 using LupiraLocationApi.Domain;
 using System.Security.Claims;
 

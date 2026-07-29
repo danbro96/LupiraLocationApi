@@ -1,5 +1,5 @@
-using LupiraLocationApi.Domain;
 using LupiraLocationApi.Domain.Telemetry;
+using LupiraLocationApi.Domain;
 using Xunit;
 
 namespace LupiraLocationApi.UnitTests;

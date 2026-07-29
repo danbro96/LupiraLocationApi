@@ -1,10 +1,10 @@
-using System.Globalization;
-using System.Text.Json;
 using LupiraLocationApi.Domain.Telemetry;
 using LupiraLocationApi.Dtos.Location;
 using LupiraLocationApi.Telemetry;
 using Npgsql;
 using NpgsqlTypes;
+using System.Globalization;
+using System.Text.Json;
 
 namespace LupiraLocationApi.Application.Telemetry;
 
