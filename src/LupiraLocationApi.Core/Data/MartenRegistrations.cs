@@ -19,10 +19,8 @@ public static class MartenRegistrations
         opts.UseSystemTextJsonForSerialization(EnumStorage.AsString);
 
         // Identity + the devices that feed location telemetry.
-        // The Authentik sub is the resolution anchor and is unique — without the constraint, concurrent
-        // first-sight logins each insert their own row and the caller silently resolves to whichever one
-        // Postgres returns first. Email stays non-unique: it is mutable, and an `email|{email}` placeholder
-        // row legitimately shares an email with its real-sub counterpart until the upgrade lands.
+        // Unique sub: without it, concurrent first-sight logins fork one login into two principals.
+        // Email stays non-unique — mutable, and a placeholder row shares it until the sub upgrade lands.
         opts.Schema.For<Principal>().Index(x => x.AuthentikSub, i => i.IsUnique = true).Index(x => x.Email);
         opts.Schema.For<Device>().Index(x => x.PrincipalId);
         opts.Schema.For<DeviceApiKey>().Index(x => x.PrincipalId).Index(x => x.DeviceId);
