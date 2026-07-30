@@ -63,8 +63,14 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         return OpResult<List<LocationVisitDto>>.Ok(visits
             .Select(v => new LocationVisitDto
             {
-                Id = v.Id, ArriveTs = v.ArriveTs, DepartTs = v.DepartTs, Lat = v.CentroidLat, Lon = v.CentroidLon,
-                RadiusM = v.RadiusM, SampleCount = v.SampleCount, PlaceLabel = v.PlaceLabel,
+                Id = v.Id,
+                ArriveTs = v.ArriveTs,
+                DepartTs = v.DepartTs,
+                Lat = v.CentroidLat,
+                Lon = v.CentroidLon,
+                RadiusM = v.RadiusM,
+                SampleCount = v.SampleCount,
+                PlaceLabel = v.PlaceLabel,
             })
             .ToList());
     }
@@ -77,8 +83,14 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         return OpResult<List<LocationTripDto>>.Ok(trips
             .Select(t => new LocationTripDto
             {
-                Id = t.Id, StartTs = t.StartTs, EndTs = t.EndTs, DistanceM = t.DistanceM, DurationS = t.DurationS,
-                DominantActivity = t.DominantActivity, AvgSpeedMps = t.AvgSpeedMps, MaxSpeedMps = t.MaxSpeedMps,
+                Id = t.Id,
+                StartTs = t.StartTs,
+                EndTs = t.EndTs,
+                DistanceM = t.DistanceM,
+                DurationS = t.DurationS,
+                DominantActivity = t.DominantActivity,
+                AvgSpeedMps = t.AvgSpeedMps,
+                MaxSpeedMps = t.MaxSpeedMps,
             })
             .ToList());
     }
@@ -90,7 +102,12 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         if (summaries.Count == 0)
             return OpResult<DailyLocationSummaryDto>.Ok(new DailyLocationSummaryDto
             {
-                Date = date, DistanceM = 0, TimeInMotionS = 0, TimeStationaryS = 0, VisitCount = 0, Places = [],
+                Date = date,
+                DistanceM = 0,
+                TimeInMotionS = 0,
+                TimeStationaryS = 0,
+                VisitCount = 0,
+                Places = [],
             });
 
         var places = summaries.SelectMany(s => s.PlacesVisited)
@@ -122,6 +139,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
             {
                 double sumLat = 0, sumLon = 0;
                 for (var k = i; k < j; k++) { sumLat += p[k].Lat; sumLon += p[k].Lon; }
+
                 var cLat = sumLat / (j - i);
                 var cLon = sumLon / (j - i);
                 double radius = 0;
@@ -131,6 +149,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
             }
             else i++;
         }
+
         return visits;
     }
 
@@ -164,12 +183,13 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
                 MaxSpeedMps = speeds.Count > 0 ? speeds.Max() : 0,
             });
         }
+
         return trips;
     }
 
     private static MotionActivity DominantActivity(IReadOnlyList<Pt> seg)
     {
-        var grouped = seg.Select(s => (MotionActivity)s.Activity)
+        var grouped = seg.Select(s => (MotionActivity) s.Activity)
             .Where(a => a != MotionActivity.Unknown)
             .GroupBy(a => a).OrderByDescending(g => g.Count()).FirstOrDefault();
         return grouped?.Key ?? MotionActivity.Unknown;

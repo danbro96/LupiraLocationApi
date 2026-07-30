@@ -1,12 +1,12 @@
-using LupiraLocationApi.Application.Telemetry;
+using System.ComponentModel;
 using LupiraLocationApi.Application;
+using LupiraLocationApi.Application.Telemetry;
 using LupiraLocationApi.Auth;
 using LupiraLocationApi.Dtos.Devices;
 using LupiraLocationApi.Dtos.Location;
 using LupiraLocationApi.Dtos.Me;
-using ModelContextProtocol.Server;
 using ModelContextProtocol;
-using System.ComponentModel;
+using ModelContextProtocol.Server;
 
 namespace LupiraLocationApi.Mcp;
 

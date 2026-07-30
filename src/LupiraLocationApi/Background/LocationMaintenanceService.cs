@@ -26,6 +26,7 @@ public sealed class LocationMaintenanceService(
         {
             try { await RunOnceAsync(ct); }
             catch (Exception ex) { logger.LogWarning(ex, "Location maintenance pass failed."); }
+
             try { await Task.Delay(TimeSpan.FromHours(1), ct); }
             catch (OperationCanceledException) { break; }
         }

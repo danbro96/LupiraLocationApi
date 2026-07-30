@@ -1,6 +1,6 @@
+using LupiraLocationApi.Domain;
 using LupiraLocationApi.Domain.Identity;
 using LupiraLocationApi.Domain.Telemetry;
-using LupiraLocationApi.Domain;
 using Marten;
 using Weasel.Core;
 

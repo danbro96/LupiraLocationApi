@@ -28,8 +28,14 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
         while (await r.ReadAsync(ct))
             result.Add(new CurrentFixDto
             {
-                DeviceId = r.GetGuid(0), Ts = Utc(r, 1), Lat = r.GetDouble(2), Lon = r.GetDouble(3),
-                AccuracyM = Db.NDouble(r, 4), SpeedMps = Db.NDouble(r, 5), Activity = Db.Activity(Db.NShort(r, 6)), BatteryPct = Db.NInt(r, 7),
+                DeviceId = r.GetGuid(0),
+                Ts = Utc(r, 1),
+                Lat = r.GetDouble(2),
+                Lon = r.GetDouble(3),
+                AccuracyM = Db.NDouble(r, 4),
+                SpeedMps = Db.NDouble(r, 5),
+                Activity = Db.Activity(Db.NShort(r, 6)),
+                BatteryPct = Db.NInt(r, 7),
             });
         return OpResult<List<CurrentFixDto>>.Ok(result);
     }
@@ -88,13 +94,21 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
             cmd.Parameters.AddWithValue("minLon", b.MinLon);
             cmd.Parameters.AddWithValue("maxLon", b.MaxLon);
         }
+
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
             result.Add(new TrackPointDto
             {
-                DeviceId = r.GetGuid(0), Ts = Utc(r, 1), Lat = r.GetDouble(2), Lon = r.GetDouble(3),
-                AccuracyM = Db.NDouble(r, 4), AltitudeM = Db.NDouble(r, 5), HeadingDeg = Db.NDouble(r, 6), SpeedMps = Db.NDouble(r, 7),
-                Activity = Db.Activity(Db.NShort(r, 8)), Provider = Db.Provider(Db.NShort(r, 9)),
+                DeviceId = r.GetGuid(0),
+                Ts = Utc(r, 1),
+                Lat = r.GetDouble(2),
+                Lon = r.GetDouble(3),
+                AccuracyM = Db.NDouble(r, 4),
+                AltitudeM = Db.NDouble(r, 5),
+                HeadingDeg = Db.NDouble(r, 6),
+                SpeedMps = Db.NDouble(r, 7),
+                Activity = Db.Activity(Db.NShort(r, 8)),
+                Provider = Db.Provider(Db.NShort(r, 9)),
             });
         return OpResult<List<TrackPointDto>>.Ok(result);
     }
@@ -156,6 +170,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
             var label = await labels.ResolveAsync(r.GetDouble(0), r.GetDouble(1), ct);
             return OpResult<PlaceLabelAtDto>.Ok(new PlaceLabelAtDto { Ts = ts, Label = label, Lat = qlat, Lon = qlon, Source = "fix" });
         }
+
         return OpResult<PlaceLabelAtDto>.Ok(new PlaceLabelAtDto { Ts = ts, Label = null, Lat = 0, Lon = 0, Source = "none" });
     }
 
@@ -170,7 +185,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
                 await using var cmd = new NpgsqlCommand(
                     $"DELETE FROM {table} WHERE principal_id = @pid AND ts >= @from AND ts < @to AND (@did::uuid IS NULL OR device_id = @did)", conn);
                 cmd.Parameters.AddWithValue("pid", pid);
-                cmd.Parameters.AddWithValue("did", (object?)deviceId ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("did", (object?) deviceId ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("from", NpgsqlDbType.TimestampTz, from.UtcDateTime);
                 cmd.Parameters.AddWithValue("to", NpgsqlDbType.TimestampTz, to.UtcDateTime);
                 await cmd.ExecuteNonQueryAsync(ct);
@@ -188,7 +203,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
     {
         var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("pid", pid);
-        cmd.Parameters.AddWithValue("did", (object?)deviceId ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("did", (object?) deviceId ?? DBNull.Value);
         return cmd;
     }
 

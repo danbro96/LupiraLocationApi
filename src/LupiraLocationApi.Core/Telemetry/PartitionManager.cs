@@ -32,6 +32,7 @@ public sealed class PartitionManager
         {
             // Failed to create — forget it so a later attempt retries.
             lock (_gate) { _ensured.Remove(name); }
+
             throw;
         }
     }
@@ -78,10 +79,11 @@ public sealed class PartitionManager
         var utc = ts.ToUniversalTime();
         if (interval == PartitionInterval.Weekly)
         {
-            var weeks = (long)Math.Floor((utc - WeekEpoch).TotalDays / 7.0);
+            var weeks = (long) Math.Floor((utc - WeekEpoch).TotalDays / 7.0);
             var lower = WeekEpoch.AddDays(weeks * 7);
             return ($"{parentTable}_w{lower:yyyyMMdd}", lower, lower.AddDays(7));
         }
+
         var monthStart = new DateTimeOffset(utc.Year, utc.Month, 1, 0, 0, 0, TimeSpan.Zero);
         return ($"{parentTable}_m{monthStart:yyyyMM}", monthStart, monthStart.AddMonths(1));
     }
@@ -98,6 +100,7 @@ public sealed class PartitionManager
             upper = lower.AddDays(7);
             return true;
         }
+
         if (!DateTimeOffset.TryParseExact(stamp, "yyyyMM", null, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out var mStart)) return false;
         upper = mStart.AddMonths(1);
         return true;

@@ -13,7 +13,7 @@ public sealed class LocationIngestHandler(IHttpContextAccessor http, LocationIng
         var ctx = http.HttpContext!;
         var (pid, did) = DeviceKeyClaims.Get(ctx.User);
         var r = await ingest.IngestNdjsonAsync(pid, did, ctx.Request.Body, ct);
-        return TypedResults.Accepted((string?)null, r.Value!);
+        return TypedResults.Accepted((string?) null, r.Value!);
     }
 
     public async Task<Results<Ok<LocationCursor>, UnauthorizedHttpResult>> CursorAsync(CancellationToken ct)

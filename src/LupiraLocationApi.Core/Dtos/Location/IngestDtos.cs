@@ -22,7 +22,13 @@ public sealed class LocationIngestReceipt
 
     public static LocationIngestReceipt PausedReceipt { get; } = new()
     {
-        Submitted = 0, Inserted = 0, Duplicates = 0, Rejected = 0, HighWaterSeq = null, Rejects = [], Paused = true,
+        Submitted = 0,
+        Inserted = 0,
+        Duplicates = 0,
+        Rejected = 0,
+        HighWaterSeq = null,
+        Rejects = [],
+        Paused = true,
     };
 }
 

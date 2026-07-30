@@ -1,6 +1,5 @@
 using LupiraLocationApi.Application;
 using LupiraLocationApi.Data;
-using LupiraLocationApi.Domain;
 using Marten;
 using Microsoft.Extensions.Configuration;
 using Npgsql;

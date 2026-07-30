@@ -1,8 +1,8 @@
+using System.Text.Json;
 using LupiraLocationApi.Domain.Telemetry;
 using Marten;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace LupiraLocationApi.Application.Telemetry;
 

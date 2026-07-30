@@ -1,10 +1,10 @@
+using System.Globalization;
+using System.Text.Json;
 using LupiraLocationApi.Domain.Telemetry;
 using LupiraLocationApi.Dtos.Location;
 using LupiraLocationApi.Telemetry;
 using Npgsql;
 using NpgsqlTypes;
-using System.Globalization;
-using System.Text.Json;
 
 namespace LupiraLocationApi.Application.Telemetry;
 
@@ -39,6 +39,7 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
             if (string.IsNullOrWhiteSpace(line)) continue;
             submitted++;
             if (submitted > MaxRows) { rejects.Add(new IngestReject { Seq = null, Reason = "batch_too_large" }); break; }
+
             var (fix, reason, seq) = ParseFix(line, maxFuture, minPast);
             if (fix is not null) accepted.Add(fix);
             else rejects.Add(new IngestReject { Seq = seq, Reason = reason! });
@@ -106,7 +107,7 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
             var f = rows[i];
             ts[i] = f.Ts.UtcDateTime; seq[i] = f.Seq; lat[i] = f.Lat; lon[i] = f.Lon;
             acc[i] = f.AccuracyM; alt[i] = f.AltitudeM; vacc[i] = f.VerticalAccM; hdg[i] = f.HeadingDeg; hacc[i] = f.HeadingAccDeg;
-            spd[i] = f.SpeedMps; sacc[i] = f.SpeedAccMps; prov[i] = (short)f.Provider; act[i] = (short)f.Activity;
+            spd[i] = f.SpeedMps; sacc[i] = f.SpeedAccMps; prov[i] = (short) f.Provider; act[i] = (short) f.Activity;
             aconf[i] = f.ActivityConf; bat[i] = f.BatteryPct; moving[i] = f.IsMoving; mock[i] = f.IsMock;
         }
 
@@ -165,10 +166,10 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
         cmd.Parameters.AddWithValue("seq", top.Seq);
         cmd.Parameters.AddWithValue("lat", top.Lat);
         cmd.Parameters.AddWithValue("lon", top.Lon);
-        cmd.Parameters.AddWithValue("acc", (object?)top.AccuracyM ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("spd", (object?)top.SpeedMps ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("act", (short)top.Activity);
-        cmd.Parameters.AddWithValue("bat", (object?)top.BatteryPct ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("acc", (object?) top.AccuracyM ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("spd", (object?) top.SpeedMps ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("act", (short) top.Activity);
+        cmd.Parameters.AddWithValue("bat", (object?) top.BatteryPct ?? DBNull.Value);
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
@@ -180,6 +181,7 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
         JsonDocument doc;
         try { doc = JsonDocument.Parse(line); }
         catch { return (null, "invalid_json", null); }
+
         using (doc)
         {
             var o = doc.RootElement;
@@ -218,8 +220,9 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
         if (o.TryGetProperty("provider", out var e))
         {
             if (e.ValueKind == JsonValueKind.String && Enum.TryParse<LocationProvider>(e.GetString(), true, out var v)) return v;
-            if (e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n) && Enum.IsDefined(typeof(LocationProvider), (short)n)) return (LocationProvider)(short)n;
+            if (e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n) && Enum.IsDefined(typeof(LocationProvider), (short) n)) return (LocationProvider) (short) n;
         }
+
         return LocationProvider.Unknown;
     }
 
@@ -228,8 +231,9 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
         if (o.TryGetProperty("activity", out var e))
         {
             if (e.ValueKind == JsonValueKind.String && Enum.TryParse<MotionActivity>(e.GetString(), true, out var v)) return v;
-            if (e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n) && Enum.IsDefined(typeof(MotionActivity), (short)n)) return (MotionActivity)(short)n;
+            if (e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n) && Enum.IsDefined(typeof(MotionActivity), (short) n)) return (MotionActivity) (short) n;
         }
+
         return MotionActivity.Unknown;
     }
 
@@ -240,7 +244,7 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
         o.TryGetProperty(name, out var e) && e.ValueKind == JsonValueKind.Number && e.TryGetInt64(out var v) ? v : null;
 
     private static short? ReadShort(JsonElement o, string name) =>
-        o.TryGetProperty(name, out var e) && e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var v) ? (short)v : null;
+        o.TryGetProperty(name, out var e) && e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var v) ? (short) v : null;
 
     private static bool? ReadBool(JsonElement o, string name) =>
         o.TryGetProperty(name, out var e) && e.ValueKind is JsonValueKind.True or JsonValueKind.False ? e.GetBoolean() : null;

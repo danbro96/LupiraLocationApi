@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using LupiraLocationApi.Auth;
 using LupiraLocationApi.Background;
 using LupiraLocationApi.Domain;
@@ -7,8 +8,8 @@ using LupiraLocationApi.Health;
 using LupiraLocationApi.Mcp;
 using LupiraLocationApi.Telemetry;
 using Marten;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
@@ -18,7 +19,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -149,6 +149,7 @@ builder.Services.AddOpenApi("v1", options =>
                 [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = new List<string>(),
             });
         }
+
         return Task.CompletedTask;
     });
 });

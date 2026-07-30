@@ -30,7 +30,7 @@ internal static class Db
     public static short? NShort(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : r.GetInt16(i);
 
     public static MotionActivity? Activity(short? a) =>
-        a is null ? null : Enum.IsDefined((MotionActivity)a.Value) ? (MotionActivity)a.Value : MotionActivity.Unknown;
+        a is null ? null : Enum.IsDefined((MotionActivity) a.Value) ? (MotionActivity) a.Value : MotionActivity.Unknown;
     public static LocationProvider? Provider(short? p) =>
-        p is null ? null : Enum.IsDefined((LocationProvider)p.Value) ? (LocationProvider)p.Value : LocationProvider.Unknown;
+        p is null ? null : Enum.IsDefined((LocationProvider) p.Value) ? (LocationProvider) p.Value : LocationProvider.Unknown;
 }

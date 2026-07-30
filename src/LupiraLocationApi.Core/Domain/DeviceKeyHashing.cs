@@ -25,6 +25,7 @@ public static class DeviceKeyHashing
         byte[] expected;
         try { expected = Convert.FromHexString(expectedHash); }
         catch { return false; }
+
         return expected.Length == actual.Length && CryptographicOperations.FixedTimeEquals(actual, expected);
     }
 
