@@ -39,7 +39,10 @@ builder.Services.AddScoped<LocationQueryHandler>();
 builder.Services.AddMcpServer().WithHttpTransport().WithTools<LocationTools>();
 
 builder.Services.ConfigureHttpJsonOptions(o =>
-    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+{
+    o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // Background maintenance: partition provisioning + nightly rollup + retention drop (gated by config).
 builder.Services.AddHostedService<LocationMaintenanceService>();
