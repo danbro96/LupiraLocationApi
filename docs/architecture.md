@@ -29,7 +29,7 @@ Its tools call the **same Core services** as the handlers — no second source o
 through the same `CurrentUser`, so every call is scoped to the caller's principal. The surface is deliberately
 **read-only and derived/coarse**: it offers visits, trips, daily summaries, coarse place-at, and movement
 stats, but no raw-track tools and no mutations. It is gated by `ApiPolicy` and meant to stay LAN/WireGuard-only
-— [Endpoints/McpExposure.cs](../src/LupiraLocationApi/Endpoints/McpExposure.cs) 404s any `/mcp` request
+— [Endpoints/LanOnlyExposure.cs](../src/LupiraLocationApi/Endpoints/LanOnlyExposure.cs) 404s any `/mcp` request
 carrying reverse-proxy edge headers as a defence-in-depth backstop.
 
 Composition: [Program.cs](../src/LupiraLocationApi/Program.cs) registers the context via
@@ -76,7 +76,7 @@ Identity is **just-in-time provisioned** and local to this service:
 
 [Program.cs](../src/LupiraLocationApi/Program.cs) defines two policies over distinct schemes:
 
-- **`ApiPolicy`** — OIDC JWT bearer (resource-server validation against `Auth__Authority`/`Auth__Audience`).
+- **`ApiPolicy`** — OIDC JWT bearer (resource-server validation against `Auth__Oidc__Authority`/`Auth__Oidc__Audience`).
   In Development a `DevAuthHandler` adds an `X-Dev-User: email` header scheme so the API can be exercised
   without an OIDC provider; it is registered **only** in Development.
 - **`IngestPolicy`** — a per-device API key

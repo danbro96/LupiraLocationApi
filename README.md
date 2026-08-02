@@ -155,13 +155,13 @@ The dev header scheme is registered **only** when the environment is Development
 
 ## Configuration
 
-All configuration is environment-driven (double-underscore maps to nested keys, e.g. `Auth__Authority`).
+All configuration is environment-driven (double-underscore maps to nested keys, e.g. `Auth__Oidc__Authority`).
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `ConnectionStrings__Postgres` | yes (prod) | local dev string | Postgres connection (both schemas live in one DB). |
-| `Auth__Authority` | yes (prod) | — | OIDC issuer URL. The API only *validates* JWTs (resource server); any OIDC provider works. |
-| `Auth__Audience` | yes (prod) | — | Expected token audience. |
+| `Auth__Oidc__Authority` | yes (prod) | — | OIDC issuer URL. The API only *validates* JWTs (resource server); any OIDC provider works. |
+| `Auth__Oidc__Audience` | yes (prod) | — | Expected token audience. |
 | `Nominatim__BaseUrl` | no | empty | Base URL of a [Nominatim](https://nominatim.org) instance for reverse-geocoded place labels. Empty disables labelling (cache-only / null). |
 | `Telemetry__LocationRetentionDays` | no | `90` | Raw-fix retention; older partitions are dropped. |
 | `Telemetry__MaintenanceEnabled` | no | `true` | Toggles the background partition/rollup/retention service. |
@@ -179,8 +179,8 @@ The image is a standard multi-stage .NET build ([Dockerfile](Dockerfile)); it li
 docker build -t lupira-location-api .
 docker run --rm -p 8080:8080 \
   -e ConnectionStrings__Postgres="Host=db;Port=5432;Database=lupira_location;Username=lupira_location_user;Password=..." \
-  -e Auth__Authority="https://your-oidc-issuer/" \
-  -e Auth__Audience="lupira-location" \
+  -e Auth__Oidc__Authority="https://your-oidc-issuer/" \
+  -e Auth__Oidc__Audience="lupira-location" \
   lupira-location-api
 ```
 
@@ -209,7 +209,7 @@ src/
     Application/               transport-neutral services + OpResult; Telemetry/ ingest/query/rollup
     Dtos/  Mappers/            request/response shapes + mapping
   LupiraLocationApi/           ASP.NET host (thin transport/composition layer)
-    Endpoints/                 Minimal-API route groups (+ McpExposure LAN-only backstop)
+    Endpoints/                 Minimal-API route groups (+ LanOnlyExposure LAN-only gate)
     Handlers/                  endpoint handlers (call Core services)
     Mcp/                       MCP agent tools (read-only; call Core services directly)
     Auth/                      OIDC + device-key + dev-header schemes, CurrentUser

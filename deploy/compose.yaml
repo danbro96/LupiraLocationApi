@@ -15,8 +15,8 @@ services:
       ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=lupira_location;Username=lupira_location_user;Password=${LUPIRA_LOCATION_DB_PASSWORD:?required}"
 
       # REST auth — Authentik OIDC (JWT). Same issuer as the other Lupira apps; the OIDC `sub` is the only cross-service join key.
-      Auth__Authority: ${AUTH_AUTHORITY:-https://auth.lupira.com/application/o/lupira-location/}
-      Auth__Audience: ${AUTH_AUDIENCE:-lupira-location}
+      Auth__Oidc__Authority: ${AUTH_AUTHORITY:-https://auth.lupira.com/application/o/lupira-location/}
+      Auth__Oidc__Audience: ${AUTH_AUDIENCE:-lupira-location}
 
       # Telemetry ingest auth is per-device API key (minted at device registration) — no extra config.
 
