@@ -1217,6 +1217,20 @@
           "maxSpeedMps": {
             "type": "number",
             "format": "double"
+          },
+          "fromVisitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "toVisitId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },

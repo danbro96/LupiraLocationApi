@@ -91,6 +91,8 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
                 DominantActivity = t.DominantActivity,
                 AvgSpeedMps = t.AvgSpeedMps,
                 MaxSpeedMps = t.MaxSpeedMps,
+                FromVisitId = t.FromVisitId,
+                ToVisitId = t.ToVisitId,
             })
             .ToList());
     }

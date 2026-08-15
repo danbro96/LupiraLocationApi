@@ -73,6 +73,12 @@ public sealed class LocationTripDto
     public MotionActivity? DominantActivity { get; set; }
     public required double AvgSpeedMps { get; set; }
     public required double MaxSpeedMps { get; set; }
+
+    /// <summary>Endpoint visits (when the trip started/ended at a detected stay-point) — lets a client join trips to
+    /// visit markers without time-window heuristics. The trip carries no geometry; fetch the polyline via
+    /// GET /location/track/thinned for [StartTs, EndTs].</summary>
+    public Guid? FromVisitId { get; set; }
+    public Guid? ToVisitId { get; set; }
 }
 
 /// <summary>A place visited on a day, with dwell minutes.</summary>
