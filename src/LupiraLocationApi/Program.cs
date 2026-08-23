@@ -33,6 +33,7 @@ builder.Services.AddScoped<MeHandler>();
 builder.Services.AddScoped<DevicesHandler>();
 builder.Services.AddScoped<LocationIngestHandler>();
 builder.Services.AddScoped<LocationQueryHandler>();
+builder.Services.AddScoped<InternalLocationHandler>();
 
 // MCP server for the agent (read-only, derived/coarse tools), mounted at /mcp over Streamable HTTP.
 // LAN/WireGuard-only — not published through the tunnel (see UseLanOnlySurfaces + the MapMcp call below).
@@ -94,7 +95,12 @@ string[] apiSchemes = builder.Environment.IsDevelopment()
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ApiPolicy", p => p.AddAuthenticationSchemes(apiSchemes).RequireAuthenticatedUser())
-    .AddPolicy("IngestPolicy", p => p.AddAuthenticationSchemes(DeviceKeyAuthHandler.SchemeName).RequireAuthenticatedUser());
+    .AddPolicy("IngestPolicy", p => p.AddAuthenticationSchemes(DeviceKeyAuthHandler.SchemeName).RequireAuthenticatedUser())
+    // internal:read is granted only to service clients — user tokens authenticate but never pass this.
+    .AddPolicy("InternalPolicy", p => p.AddAuthenticationSchemes(apiSchemes).RequireAuthenticatedUser()
+        .RequireAssertion(ctx => ctx.User.FindAll("scope")
+            .SelectMany(c => c.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            .Contains("internal:read")));
 
 // --- Observability: OpenTelemetry -> OpenObserve. Env-gated; the OTLP exporter reads OTEL_EXPORTER_OTLP_* itself. ---
 var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
@@ -210,6 +216,7 @@ app.MapMe();
 app.MapDevices();
 app.MapIngest();
 app.MapLocationQuery();
+app.MapInternal();
 
 // Agent MCP transport (LAN/WireGuard-only; excluded from the Cloudflare Tunnel at the edge).
 // RFC 9728 metadata lets MCP clients discover the Authentik issuer from the 401 challenge.

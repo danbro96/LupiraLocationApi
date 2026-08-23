@@ -27,6 +27,11 @@ public sealed class PrincipalDirectory(IDocumentSession session)
         return await session.Query<Principal>().Where(x => x.Email == email).OrderBy(x => x.Id).FirstOrDefaultAsync(ct);
     }
 
+    /// <summary>Looks up an existing principal by OIDC <c>sub</c> without provisioning. Used by service-to-service
+    /// seams acting on a named principal — an unknown sub is a "not found", never a placeholder row.</summary>
+    public async Task<Principal?> FindBySubAsync(string sub, CancellationToken ct = default) =>
+        await session.Query<Principal>().Where(x => x.AuthentikSub == sub).OrderBy(x => x.Id).FirstOrDefaultAsync(ct);
+
     public async Task<Principal> ResolveOrProvisionAsync(string? sub, string email, string? name, CancellationToken ct = default)
     {
         email = Normalize(email);
