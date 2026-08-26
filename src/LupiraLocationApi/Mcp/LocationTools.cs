@@ -22,9 +22,9 @@ namespace LupiraLocationApi.Mcp;
 [McpServerToolType]
 public sealed class LocationTools(CurrentUser user, DeviceService devices, LocationQueryService query, TripVisitService trips)
 {
-    [McpServerTool(Name = "me")]
+    [McpServerTool(Name = "whoami")]
     [Description("Get the caller's resolved identity (local id, email, display name).")]
-    public async Task<MeDto> Me(CancellationToken ct = default)
+    public async Task<MeDto> WhoAmI(CancellationToken ct = default)
     {
         var u = await user.GetAsync(ct);
         return new MeDto { Id = u.Id, Email = u.Email, DisplayName = u.DisplayName };
