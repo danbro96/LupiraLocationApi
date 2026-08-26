@@ -78,7 +78,7 @@ raw lat·lon track tools, no mutations. Tools call the same Core services as RES
 
 | Tool | Maps to | Returns |
 |---|---|---|
-| `me` | identity | The caller's resolved local identity. |
+ | `whoami` | identity | The caller's resolved local identity. |
 | `list_devices` | `/devices` (list) | The caller's devices (to scope `movement_stats`). |
 | `list_visits` | `/location/visits` | Materialized stay-points over a range. |
 | `list_trips` | `/location/trips` | Materialized trips over a range. |
