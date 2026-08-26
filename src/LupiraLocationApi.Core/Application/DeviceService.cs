@@ -1,3 +1,4 @@
+using LupiraLocationApi.Core.Application.Results;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Dtos.Devices;
 using LupiraLocationApi.Core.Mappers;

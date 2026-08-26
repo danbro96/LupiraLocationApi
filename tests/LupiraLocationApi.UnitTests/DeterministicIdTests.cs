@@ -1,4 +1,3 @@
-using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Domain.Telemetry;
 using Xunit;
 

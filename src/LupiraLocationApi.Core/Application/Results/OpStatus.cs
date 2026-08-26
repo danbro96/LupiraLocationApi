@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Core.Application;
+namespace LupiraLocationApi.Core.Application.Results;
 
 /// <summary>
 /// The transport-neutral outcome of a service operation. Each surface's adapter maps it to its own wire

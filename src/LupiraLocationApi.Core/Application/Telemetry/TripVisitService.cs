@@ -1,3 +1,4 @@
+using LupiraLocationApi.Core.Application.Results;
 using LupiraLocationApi.Core.Domain.Telemetry;
 using LupiraLocationApi.Core.Dtos.Location;
 using Marten;

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using LupiraLocationApi.Auth;
 using LupiraLocationApi.Core.Application;
+using LupiraLocationApi.Core.Application.Results;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Dtos.Devices;
 using LupiraLocationApi.Core.Dtos.Location;
