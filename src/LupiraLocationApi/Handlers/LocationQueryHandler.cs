@@ -1,5 +1,5 @@
-using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Auth;
+using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Dtos.Location;
 using Microsoft.AspNetCore.Http.HttpResults;
 

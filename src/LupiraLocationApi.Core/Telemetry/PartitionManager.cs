@@ -2,8 +2,6 @@ using Npgsql;
 
 namespace LupiraLocationApi.Core.Telemetry;
 
-public enum PartitionInterval { Weekly, Monthly }
-
 /// <summary>Creates time-range partitions on demand (idempotent) and drops expired ones for retention. Singleton; an
 /// in-memory cache avoids re-issuing DDL for partitions already known to exist. Ingest calls <see cref="EnsureAsync"/>
 /// for every period present in a batch so a (possibly late/backfilled) row always has a home partition — no DEFAULT
