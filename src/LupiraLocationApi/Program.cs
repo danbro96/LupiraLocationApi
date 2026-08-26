@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using LupiraLocationApi.Auth;
-using LupiraLocationApi.Background;
+using LupiraLocationApi.Workers;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Endpoints;
 using LupiraLocationApi.Handlers;

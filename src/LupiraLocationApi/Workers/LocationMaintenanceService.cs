@@ -2,7 +2,7 @@ using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Telemetry;
 using Npgsql;
 
-namespace LupiraLocationApi.Background;
+namespace LupiraLocationApi.Workers;
 
 /// <summary>Periodic maintenance for the location telemetry store: provision upcoming partitions, roll up recent days
 /// into Visits/Trips/DailyLocationSummary (freezing place labels), and drop expired raw-location partitions for
