@@ -11,7 +11,8 @@ public static class InternalEndpoints
         app.MapGet("/internal/location/place-at",
                 (string sub, DateTimeOffset ts, InternalLocationHandler h, CancellationToken ct) => h.PlaceAtAsync(sub, ts, ct))
             .RequireAuthorization("InternalPolicy")
-            .ExcludeFromDescription();
+            .ExcludeFromDescription()
+            .WithName("GetPlaceAt");
         return app;
     }
 }

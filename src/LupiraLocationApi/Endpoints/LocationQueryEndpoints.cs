@@ -12,32 +12,45 @@ public static class LocationQueryEndpoints
         var g = app.MapGroup("/location").RequireAuthorization("ApiPolicy").WithTags("Location");
 
         g.MapGet("/current", (Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.CurrentAsync(deviceId, ct))
-            .WithSummary("Latest known location per device.").Produces<List<CurrentFixDto>>(StatusCodes.Status200OK);
+            .WithSummary("Latest known location per device.").Produces<List<CurrentFixDto>>(StatusCodes.Status200OK)
+            .WithName("GetCurrentLocation");
         g.MapGet("/track", (DateTimeOffset? from, DateTimeOffset? to, Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.TrackAsync(from, to, deviceId, ct))
-            .WithSummary("Raw track over a time range (capped).").Produces<List<TrackPointDto>>(StatusCodes.Status200OK);
+            .WithSummary("Raw track over a time range (capped).").Produces<List<TrackPointDto>>(StatusCodes.Status200OK)
+            .WithName("GetTrack");
         g.MapGet("/track/thinned", (DateTimeOffset? from, DateTimeOffset? to, int? bucketSeconds, Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.ThinnedAsync(from, to, bucketSeconds, deviceId, ct))
-            .WithSummary("Server-downsampled track (one best-accuracy fix per time bucket).").Produces<List<TrackPointDto>>(StatusCodes.Status200OK);
+            .WithSummary("Server-downsampled track (one best-accuracy fix per time bucket).").Produces<List<TrackPointDto>>(StatusCodes.Status200OK)
+            .WithName("GetThinnedTrack");
         g.MapGet("/stats", (DateTimeOffset? from, DateTimeOffset? to, Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.StatsAsync(from, to, deviceId, ct))
-            .WithSummary("Distance + speed stats over a time range.").Produces<TrackStatsDto>(StatusCodes.Status200OK);
+            .WithSummary("Distance + speed stats over a time range.").Produces<TrackStatsDto>(StatusCodes.Status200OK)
+            .WithName("GetMovementStats");
         g.MapGet("/bbox", (double minLat, double maxLat, double minLon, double maxLon, DateTimeOffset? from, DateTimeOffset? to, Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.BboxAsync(minLat, maxLat, minLon, maxLon, from, to, deviceId, ct))
-            .WithSummary("Fixes within a lat/lon rectangle over a time range.").Produces<List<TrackPointDto>>(StatusCodes.Status200OK);
+            .WithSummary("Fixes within a lat/lon rectangle over a time range.").Produces<List<TrackPointDto>>(StatusCodes.Status200OK)
+            .WithName("GetBoundingBox");
         g.MapGet("/at", (DateTimeOffset ts, LocationQueryHandler h, CancellationToken ct) => h.AtAsync(ts, ct))
-            .WithSummary("Coarse place label at a time (synergy-safe — never the raw fix).").Produces<PlaceLabelAtDto>(StatusCodes.Status200OK);
+            .WithSummary("Coarse place label at a time (synergy-safe — never the raw fix).").Produces<PlaceLabelAtDto>(StatusCodes.Status200OK)
+            .WithName("GetLocationAt");
         g.MapGet("/visits", (DateTimeOffset? from, DateTimeOffset? to, LocationQueryHandler h, CancellationToken ct) => h.VisitsAsync(from, to, ct))
-            .WithSummary("Materialized stay-points over a time range.").Produces<List<LocationVisitDto>>(StatusCodes.Status200OK);
+            .WithSummary("Materialized stay-points over a time range.").Produces<List<LocationVisitDto>>(StatusCodes.Status200OK)
+            .WithName("ListVisits");
         g.MapGet("/trips", (DateTimeOffset? from, DateTimeOffset? to, LocationQueryHandler h, CancellationToken ct) => h.TripsAsync(from, to, ct))
-            .WithSummary("Materialized trips over a time range.").Produces<List<LocationTripDto>>(StatusCodes.Status200OK);
+            .WithSummary("Materialized trips over a time range.").Produces<List<LocationTripDto>>(StatusCodes.Status200OK)
+            .WithName("ListTrips");
         g.MapGet("/summary", (DateOnly date, LocationQueryHandler h, CancellationToken ct) => h.SummaryAsync(date, ct))
-            .WithSummary("Per-day location rollup.").Produces<DailyLocationSummaryDto>(StatusCodes.Status200OK);
+            .WithSummary("Per-day location rollup.").Produces<DailyLocationSummaryDto>(StatusCodes.Status200OK)
+            .WithName("GetDailySummary");
         g.MapDelete("/", (DateTimeOffset? from, DateTimeOffset? to, Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.PurgeAsync(from, to, deviceId, ct))
-            .WithSummary("Purge raw fixes + derived docs in a time range (owner erase).").Produces(StatusCodes.Status204NoContent);
+            .WithSummary("Purge raw fixes + derived docs in a time range (owner erase).").Produces(StatusCodes.Status204NoContent)
+            .WithName("PurgeLocationHistory");
 
         g.MapPost("/tracking/{deviceId:guid}/pause", (Guid deviceId, PauseTrackingRequest? body, LocationQueryHandler h, CancellationToken ct) => h.PauseAsync(deviceId, body, ct))
-            .WithSummary("Pause tracking for a device (ingest is discarded while paused).").Produces(StatusCodes.Status204NoContent);
+            .WithSummary("Pause tracking for a device (ingest is discarded while paused).").Produces(StatusCodes.Status204NoContent)
+            .WithName("PauseTracking");
         g.MapPost("/tracking/{deviceId:guid}/resume", (Guid deviceId, LocationQueryHandler h, CancellationToken ct) => h.ResumeAsync(deviceId, ct))
-            .WithSummary("Resume tracking for a device.").Produces(StatusCodes.Status204NoContent);
+            .WithSummary("Resume tracking for a device.").Produces(StatusCodes.Status204NoContent)
+            .WithName("ResumeTracking");
         g.MapGet("/tracking/{deviceId:guid}/state", (Guid deviceId, LocationQueryHandler h, CancellationToken ct) => h.TrackingStateAsync(deviceId, ct))
-            .WithSummary("Tracking state for a device.").Produces<TrackingStateDto>(StatusCodes.Status200OK);
+            .WithSummary("Tracking state for a device.").Produces<TrackingStateDto>(StatusCodes.Status200OK)
+            .WithName("GetTrackingState");
         return app;
     }
 }

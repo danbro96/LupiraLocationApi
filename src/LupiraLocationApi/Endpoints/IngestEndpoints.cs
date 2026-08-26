@@ -14,13 +14,16 @@ public static class IngestEndpoints
         g.MapPost("/location", (LocationIngestHandler h, CancellationToken ct) => h.IngestAsync(ct))
             .WithSummary("Ingest a batch of GPS fixes (NDJSON, one fix per line).")
             .Accepts<string>("application/x-ndjson")
-            .Produces<LocationIngestReceipt>(StatusCodes.Status202Accepted);
+            .Produces<LocationIngestReceipt>(StatusCodes.Status202Accepted)
+            .WithName("IngestLocation");
         g.MapGet("/location/cursor", (LocationIngestHandler h, CancellationToken ct) => h.CursorAsync(ct))
             .WithSummary("The device's resume cursor (last accepted seq + ts).")
-            .Produces<LocationCursor>(StatusCodes.Status200OK);
+            .Produces<LocationCursor>(StatusCodes.Status200OK)
+            .WithName("GetIngestCursor");
         g.MapGet("/location/state", (LocationIngestHandler h, CancellationToken ct) => h.StateAsync(ct))
             .WithSummary("Whether tracking is paused for this device (the uploader should stop collecting if so).")
-            .Produces<TrackingStateDto>(StatusCodes.Status200OK);
+            .Produces<TrackingStateDto>(StatusCodes.Status200OK)
+            .WithName("GetIngestState");
         return app;
     }
 }

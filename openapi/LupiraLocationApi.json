@@ -12,6 +12,7 @@
           "Me"
         ],
         "summary": "The caller's resolved local identity (JIT-provisioned on first login).",
+        "operationId": "WhoAmI",
         "responses": {
           "200": {
             "description": "OK",
@@ -57,6 +58,7 @@
           "Devices"
         ],
         "summary": "List the caller's registered location-tracking devices.",
+        "operationId": "ListDevices",
         "responses": {
           "200": {
             "description": "OK",
@@ -103,6 +105,7 @@
           "Devices"
         ],
         "summary": "Register a device; returns the one-time ingest API key.",
+        "operationId": "RegisterDevice",
         "requestBody": {
           "content": {
             "application/json": {
@@ -168,6 +171,7 @@
           "Devices"
         ],
         "summary": "Rename a device.",
+        "operationId": "RenameDevice",
         "parameters": [
           {
             "name": "id",
@@ -262,6 +266,7 @@
           "Devices"
         ],
         "summary": "Retire a device (revokes its ingest keys).",
+        "operationId": "RetireDevice",
         "parameters": [
           {
             "name": "id",
@@ -331,6 +336,7 @@
           "Ingest"
         ],
         "summary": "Ingest a batch of GPS fixes (NDJSON, one fix per line).",
+        "operationId": "IngestLocation",
         "requestBody": {
           "content": {
             "application/x-ndjson": {
@@ -386,6 +392,7 @@
           "Ingest"
         ],
         "summary": "The device's resume cursor (last accepted seq + ts).",
+        "operationId": "GetIngestCursor",
         "responses": {
           "200": {
             "description": "OK",
@@ -431,6 +438,7 @@
           "Ingest"
         ],
         "summary": "Whether tracking is paused for this device (the uploader should stop collecting if so).",
+        "operationId": "GetIngestState",
         "responses": {
           "200": {
             "description": "OK",
@@ -476,6 +484,7 @@
           "Location"
         ],
         "summary": "Latest known location per device.",
+        "operationId": "GetCurrentLocation",
         "parameters": [
           {
             "name": "deviceId",
@@ -534,6 +543,7 @@
           "Location"
         ],
         "summary": "Raw track over a time range (capped).",
+        "operationId": "GetTrack",
         "parameters": [
           {
             "name": "from",
@@ -608,6 +618,7 @@
           "Location"
         ],
         "summary": "Server-downsampled track (one best-accuracy fix per time bucket).",
+        "operationId": "GetThinnedTrack",
         "parameters": [
           {
             "name": "from",
@@ -690,6 +701,7 @@
           "Location"
         ],
         "summary": "Distance + speed stats over a time range.",
+        "operationId": "GetMovementStats",
         "parameters": [
           {
             "name": "from",
@@ -761,6 +773,7 @@
           "Location"
         ],
         "summary": "Fixes within a lat/lon rectangle over a time range.",
+        "operationId": "GetBoundingBox",
         "parameters": [
           {
             "name": "minLat",
@@ -871,6 +884,7 @@
           "Location"
         ],
         "summary": "Coarse place label at a time (synergy-safe — never the raw fix).",
+        "operationId": "GetLocationAt",
         "parameters": [
           {
             "name": "ts",
@@ -927,6 +941,7 @@
           "Location"
         ],
         "summary": "Materialized stay-points over a time range.",
+        "operationId": "ListVisits",
         "parameters": [
           {
             "name": "from",
@@ -993,6 +1008,7 @@
           "Location"
         ],
         "summary": "Materialized trips over a time range.",
+        "operationId": "ListTrips",
         "parameters": [
           {
             "name": "from",
@@ -1059,6 +1075,7 @@
           "Location"
         ],
         "summary": "Per-day location rollup.",
+        "operationId": "GetDailySummary",
         "parameters": [
           {
             "name": "date",
@@ -1115,6 +1132,7 @@
           "Location"
         ],
         "summary": "Purge raw fixes + derived docs in a time range (owner erase).",
+        "operationId": "PurgeLocationHistory",
         "parameters": [
           {
             "name": "from",
@@ -1179,6 +1197,7 @@
           "Location"
         ],
         "summary": "Pause tracking for a device (ingest is discarded while paused).",
+        "operationId": "PauseTracking",
         "parameters": [
           {
             "name": "deviceId",
@@ -1244,6 +1263,7 @@
           "Location"
         ],
         "summary": "Resume tracking for a device.",
+        "operationId": "ResumeTracking",
         "parameters": [
           {
             "name": "deviceId",
@@ -1293,6 +1313,7 @@
           "Location"
         ],
         "summary": "Tracking state for a device.",
+        "operationId": "GetTrackingState",
         "parameters": [
           {
             "name": "deviceId",
