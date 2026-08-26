@@ -24,7 +24,24 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -55,7 +72,24 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -101,7 +135,24 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -150,7 +201,14 @@
             }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -173,7 +231,24 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -203,7 +278,14 @@
             "description": "No Content"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -216,7 +298,24 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -252,6 +351,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -277,6 +396,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -299,6 +438,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TrackingStateDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -337,6 +496,26 @@
                   "items": {
                     "$ref": "#/components/schemas/CurrentFixDto"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -391,6 +570,26 @@
                   "items": {
                     "$ref": "#/components/schemas/TrackPointDto"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -456,6 +655,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -504,6 +723,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TrackStatsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -597,6 +836,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -630,6 +889,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlaceLabelAtDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -679,6 +958,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -725,6 +1024,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -758,6 +1077,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DailyLocationSummaryDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -805,6 +1144,26 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -850,6 +1209,26 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -879,6 +1258,26 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -912,6 +1311,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TrackingStateDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -983,7 +1402,8 @@
             ],
             "format": "int32"
           }
-        }
+        },
+        "description": "Latest-known location for a device."
       },
       "DailyLocationSummaryDto": {
         "required": [
@@ -1022,7 +1442,8 @@
               "$ref": "#/components/schemas/VisitedPlaceDto"
             }
           }
-        }
+        },
+        "description": "Per-day location rollup."
       },
       "DeviceDto": {
         "required": [
@@ -1060,7 +1481,8 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "description": "A registered device."
       },
       "DeviceKind": {
         "enum": [
@@ -1068,7 +1490,8 @@
           "Watch",
           "Tracker",
           "Other"
-        ]
+        ],
+        "description": "Kind of registered device that feeds location telemetry."
       },
       "IngestReject": {
         "required": [
@@ -1086,7 +1509,8 @@
           "reason": {
             "type": "string"
           }
-        }
+        },
+        "description": "A per-row rejection within an otherwise-accepted batch (permanent — the uploader should drop + log it)."
       },
       "LocationCursor": {
         "required": [
@@ -1112,7 +1536,8 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "description": "The resume cursor for a device: the highest accepted seq + its timestamp (from the latest-snapshot table)."
       },
       "LocationIngestReceipt": {
         "required": [
@@ -1156,7 +1581,8 @@
           "paused": {
             "type": "boolean"
           }
-        }
+        },
+        "description": "The outcome of a location ingest batch. Idempotent re-uploads show up as int LocationIngestReceipt.Duplicates; the\n            uploader advances past long? LocationIngestReceipt.HighWaterSeq. When tracking is paused the body is discarded and\n            bool LocationIngestReceipt.Paused is true."
       },
       "LocationProvider": {
         "enum": [
@@ -1223,6 +1649,7 @@
               "null",
               "string"
             ],
+            "description": "Endpoint visits (when the trip started/ended at a detected stay-point) — lets a client join trips to\n            visit markers without time-window heuristics. The trip carries no geometry; fetch the polyline via\n            GET /location/track/thinned for [StartTs, EndTs].",
             "format": "uuid"
           },
           "toVisitId": {
@@ -1232,7 +1659,8 @@
             ],
             "format": "uuid"
           }
-        }
+        },
+        "description": "A materialized trip between stays."
       },
       "LocationVisitDto": {
         "required": [
@@ -1280,7 +1708,8 @@
               "string"
             ]
           }
-        }
+        },
+        "description": "A materialized stay-point."
       },
       "MeDto": {
         "required": [
@@ -1302,7 +1731,8 @@
               "string"
             ]
           }
-        }
+        },
+        "description": "The resolved local identity of the caller."
       },
       "MotionActivity": {
         "enum": [
@@ -1324,7 +1754,8 @@
               "string"
             ]
           }
-        }
+        },
+        "description": "Pause tracking for a device (optional human-readable reason)."
       },
       "PlaceLabelAtDto": {
         "required": [
@@ -1356,7 +1787,8 @@
           "source": {
             "type": "string"
           }
-        }
+        },
+        "description": "A coarse \"where was I at T\" answer — a place label + coarsened coordinate, never the raw fix. Synergy-safe."
       },
       "ProblemDetails": {
         "type": "object",
@@ -1391,8 +1823,15 @@
               "null",
               "string"
             ]
+          },
+          "traceId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
-        }
+        },
+        "description": "RFC 9457 problem details."
       },
       "RegisterDeviceRequest": {
         "required": [
@@ -1413,7 +1852,8 @@
               "string"
             ]
           }
-        }
+        },
+        "description": "Register a device that will feed location telemetry."
       },
       "RegisterDeviceResponse": {
         "required": [
@@ -1433,7 +1873,8 @@
           "apiKey": {
             "type": "string"
           }
-        }
+        },
+        "description": "Result of registering a device. string RegisterDeviceResponse.ApiKey is the one-time plaintext ingest credential\n            (`{keyId:N}.{secret}`) — it is shown only here and never retrievable again; only its hash is stored."
       },
       "RenameDeviceRequest": {
         "required": [
@@ -1444,7 +1885,8 @@
           "label": {
             "type": "string"
           }
-        }
+        },
+        "description": "Rename a device."
       },
       "TrackingStateDto": {
         "required": [
@@ -1473,7 +1915,8 @@
               "string"
             ]
           }
-        }
+        },
+        "description": "Per-device tracking kill-switch state."
       },
       "TrackPointDto": {
         "required": [
@@ -1548,7 +1991,8 @@
               }
             ]
           }
-        }
+        },
+        "description": "A point on a (raw or thinned) track."
       },
       "TrackStatsDto": {
         "required": [
@@ -1579,7 +2023,8 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "description": "Distance + speed stats over a time range."
       },
       "VisitedPlaceDto": {
         "required": [
@@ -1607,7 +2052,8 @@
             "type": "number",
             "format": "double"
           }
-        }
+        },
+        "description": "A place visited on a day, with dwell minutes."
       }
     },
     "securitySchemes": {
