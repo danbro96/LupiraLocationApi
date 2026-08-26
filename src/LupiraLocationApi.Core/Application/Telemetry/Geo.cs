@@ -9,8 +9,8 @@ internal static class Geo
     {
         var dLat = Deg2Rad(lat2 - lat1);
         var dLon = Deg2Rad(lon2 - lon1);
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
-              + Math.Cos(Deg2Rad(lat1)) * Math.Cos(Deg2Rad(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        var a = (Math.Sin(dLat / 2) * Math.Sin(dLat / 2))
+              + (Math.Cos(Deg2Rad(lat1)) * Math.Cos(Deg2Rad(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2));
         return EarthRadiusM * 2 * Math.Asin(Math.Min(1.0, Math.Sqrt(a)));
     }
 

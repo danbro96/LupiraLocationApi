@@ -4,6 +4,8 @@ namespace LupiraLocationApi.Core.Domain.Telemetry;
 public sealed class LocationRollupCheckpoint
 {
     public const string SingletonId = "location-rollup";
+
     public string Id { get; set; } = SingletonId;
+
     public DateTimeOffset RolledUpThrough { get; set; }
 }

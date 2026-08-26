@@ -103,6 +103,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         var summaries = await session.Query<DailyLocationSummary>()
             .Where(s => s.PrincipalId == pid && s.Date == date).ToListAsync(ct);
         if (summaries.Count == 0)
+        {
             return OpResult<DailyLocationSummaryDto>.Ok(new DailyLocationSummaryDto
             {
                 Date = date,
@@ -112,6 +113,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
                 VisitCount = 0,
                 Places = [],
             });
+        }
 
         var places = summaries.SelectMany(s => s.PlacesVisited)
             .Select(p => new VisitedPlaceDto { Label = p.Label, Lat = p.Lat, Lon = p.Lon, Minutes = p.Minutes }).ToList();
@@ -141,7 +143,11 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
             if (j - 1 > i && dwell >= MinDwell)
             {
                 double sumLat = 0, sumLon = 0;
-                for (var k = i; k < j; k++) { sumLat += p[k].Lat; sumLon += p[k].Lon; }
+                for (var k = i; k < j; k++)
+                {
+                    sumLat += p[k].Lat;
+                    sumLon += p[k].Lon;
+                }
 
                 var cLat = sumLat / (j - i);
                 var cLon = sumLon / (j - i);
@@ -150,7 +156,10 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
                 visits.Add(new VisitAccum(p[i].Ts, p[j - 1].Ts, cLat, cLon, radius, j - i));
                 i = j;
             }
-            else i++;
+            else
+            {
+                i++;
+            }
         }
 
         return visits;

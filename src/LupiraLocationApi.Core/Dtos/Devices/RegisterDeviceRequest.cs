@@ -6,6 +6,8 @@ namespace LupiraLocationApi.Core.Dtos.Devices;
 public sealed class RegisterDeviceRequest
 {
     public required DeviceKind Kind { get; set; }
+
     public required string Label { get; set; }
+
     public string? ExternalId { get; set; }
 }

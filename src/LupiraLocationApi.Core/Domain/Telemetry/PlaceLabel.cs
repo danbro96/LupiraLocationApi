@@ -4,11 +4,16 @@ namespace LupiraLocationApi.Core.Domain.Telemetry;
 /// one entry. Lives in <c>location</c>; lets raw GPS keep short retention without losing resolved names.</summary>
 public sealed class PlaceLabel
 {
-    public Guid Id { get; set; }            // == MakeId(quantized lat, quantized lon)
+    public Guid Id { get; set; } // == MakeId(quantized lat, quantized lon)
+
     public double Lat { get; set; }
+
     public double Lon { get; set; }
-    public string Label { get; set; } = "";
-    public string Source { get; set; } = "";
+
+    public string Label { get; set; } = string.Empty;
+
+    public string Source { get; set; } = string.Empty;
+
     public DateTimeOffset ResolvedAt { get; set; }
 
     /// <summary>~100 m grid quantization (≈0.001° lat). Both coords are snapped, so the id is stable for a cell.</summary>

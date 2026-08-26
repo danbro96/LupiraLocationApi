@@ -4,7 +4,10 @@ namespace LupiraLocationApi.Core.Dtos.Location;
 public sealed class VisitedPlaceDto
 {
     public string? Label { get; set; }
+
     public required double Lat { get; set; }
+
     public required double Lon { get; set; }
+
     public required double Minutes { get; set; }
 }

@@ -5,13 +5,22 @@ namespace LupiraLocationApi.Core.Domain.Telemetry;
 public sealed class LocationVisit
 {
     public Guid Id { get; set; }
+
     public Guid PrincipalId { get; set; }
+
     public Guid DeviceId { get; set; }
+
     public DateTimeOffset ArriveTs { get; set; }
+
     public DateTimeOffset DepartTs { get; set; }
+
     public double CentroidLat { get; set; }
+
     public double CentroidLon { get; set; }
+
     public double RadiusM { get; set; }
+
     public int SampleCount { get; set; }
+
     public string? PlaceLabel { get; set; }
 }

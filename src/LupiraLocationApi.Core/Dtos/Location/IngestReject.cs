@@ -4,5 +4,6 @@ namespace LupiraLocationApi.Core.Dtos.Location;
 public sealed class IngestReject
 {
     public long? Seq { get; set; }
+
     public required string Reason { get; set; }
 }

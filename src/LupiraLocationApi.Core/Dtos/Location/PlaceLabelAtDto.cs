@@ -4,8 +4,12 @@ namespace LupiraLocationApi.Core.Dtos.Location;
 public sealed class PlaceLabelAtDto
 {
     public required DateTimeOffset Ts { get; set; }
+
     public string? Label { get; set; }
+
     public required double Lat { get; set; }
+
     public required double Lon { get; set; }
+
     public required string Source { get; set; }
 }

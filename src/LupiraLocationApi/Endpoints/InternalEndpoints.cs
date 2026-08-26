@@ -8,7 +8,8 @@ public static class InternalEndpoints
 {
     public static IEndpointRouteBuilder MapInternal(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/internal/location/place-at",
+        app.MapGet(
+            "/internal/location/place-at",
                 (string sub, DateTimeOffset ts, InternalLocationHandler h, CancellationToken ct) => h.PlaceAtAsync(sub, ts, ct))
             .RequireAuthorization("InternalPolicy")
             .ExcludeFromDescription()

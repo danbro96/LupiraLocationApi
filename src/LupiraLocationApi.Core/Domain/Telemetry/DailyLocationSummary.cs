@@ -5,13 +5,21 @@ namespace LupiraLocationApi.Core.Domain.Telemetry;
 public sealed class DailyLocationSummary
 {
     public Guid Id { get; set; }
+
     public Guid PrincipalId { get; set; }
+
     public Guid DeviceId { get; set; }
+
     public DateOnly Date { get; set; }
+
     public double DistanceM { get; set; }
+
     public double TimeInMotionS { get; set; }
+
     public double TimeStationaryS { get; set; }
+
     public int VisitCount { get; set; }
+
     public List<VisitedPlace> PlacesVisited { get; set; } = new();
 
     public static Guid MakeId(Guid principalId, Guid deviceId, DateOnly date) =>

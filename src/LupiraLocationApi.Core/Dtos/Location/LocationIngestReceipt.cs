@@ -6,11 +6,17 @@ namespace LupiraLocationApi.Core.Dtos.Location;
 public sealed class LocationIngestReceipt
 {
     public required int Submitted { get; set; }
+
     public required int Inserted { get; set; }
+
     public required int Duplicates { get; set; }
+
     public required int Rejected { get; set; }
+
     public long? HighWaterSeq { get; set; }
+
     public required IReadOnlyList<IngestReject> Rejects { get; set; }
+
     public bool Paused { get; set; }
 
     public static LocationIngestReceipt PausedReceipt { get; } = new()

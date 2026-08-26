@@ -72,7 +72,11 @@ public sealed class DeviceService(IDocumentSession session)
 
         // Revoke the device's ingest keys so a retired device can no longer push.
         var keys = await session.Query<DeviceApiKey>().Where(k => k.DeviceId == deviceId && k.RevokedAt == null).ToListAsync(ct);
-        foreach (var k in keys) { k.RevokedAt = DateTimeOffset.UtcNow; session.Store(k); }
+        foreach (var k in keys)
+        {
+            k.RevokedAt = DateTimeOffset.UtcNow;
+            session.Store(k);
+        }
 
         await session.SaveChangesAsync(ct);
         return OpResult.Ok();

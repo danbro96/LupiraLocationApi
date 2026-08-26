@@ -27,6 +27,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
         await using var cmd = Cmd(conn, sql, pid, deviceId);
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
+        {
             result.Add(new CurrentFixDto
             {
                 DeviceId = r.GetGuid(0),
@@ -38,6 +39,8 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
                 Activity = Db.Activity(Db.NShort(r, 6)),
                 BatteryPct = Db.NInt(r, 7),
             });
+        }
+
         return OpResult<List<CurrentFixDto>>.Ok(result);
     }
 
@@ -98,6 +101,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
 
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
+        {
             result.Add(new TrackPointDto
             {
                 DeviceId = r.GetGuid(0),
@@ -111,6 +115,8 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
                 Activity = Db.Activity(Db.NShort(r, 8)),
                 Provider = Db.Provider(Db.NShort(r, 9)),
             });
+        }
+
         return OpResult<List<TrackPointDto>>.Ok(result);
     }
 

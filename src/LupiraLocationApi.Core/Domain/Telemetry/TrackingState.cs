@@ -4,11 +4,16 @@ namespace LupiraLocationApi.Core.Domain.Telemetry;
 /// learns to stop collecting via the ingest state endpoint. Composite id (record-agnostic: principal + device).</summary>
 public sealed class TrackingState
 {
-    public string Id { get; set; } = "";
+    public string Id { get; set; } = string.Empty;
+
     public Guid PrincipalId { get; set; }
+
     public Guid DeviceId { get; set; }
+
     public bool Paused { get; set; }
+
     public DateTimeOffset? PausedAt { get; set; }
+
     public string? Reason { get; set; }
 
     public static string MakeId(Guid principalId, Guid deviceId) => $"{principalId:N}:{deviceId:N}";

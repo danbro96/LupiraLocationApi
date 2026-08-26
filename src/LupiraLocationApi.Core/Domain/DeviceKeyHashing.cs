@@ -23,8 +23,14 @@ public static class DeviceKeyHashing
     {
         var actual = SHA256.HashData(Encoding.UTF8.GetBytes(secret));
         byte[] expected;
-        try { expected = Convert.FromHexString(expectedHash); }
-        catch { return false; }
+        try
+        {
+            expected = Convert.FromHexString(expectedHash);
+        }
+        catch
+        {
+            return false;
+        }
 
         return expected.Length == actual.Length && CryptographicOperations.FixedTimeEquals(actual, expected);
     }
@@ -33,7 +39,7 @@ public static class DeviceKeyHashing
     public static bool TryParse(string credential, out Guid keyId, out string secret)
     {
         keyId = default;
-        secret = "";
+        secret = string.Empty;
         if (string.IsNullOrWhiteSpace(credential)) return false;
         var dot = credential.IndexOf('.');
         if (dot <= 0 || dot == credential.Length - 1) return false;

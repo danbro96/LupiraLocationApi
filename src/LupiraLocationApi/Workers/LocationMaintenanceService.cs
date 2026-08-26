@@ -19,16 +19,34 @@ public sealed class LocationMaintenanceService(
     {
         if (!config.GetValue("Telemetry:MaintenanceEnabled", true)) return;
 
-        try { await Task.Delay(TimeSpan.FromMinutes(2), ct); }
-        catch (OperationCanceledException) { return; }
+        try
+        {
+            await Task.Delay(TimeSpan.FromMinutes(2), ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
 
         while (!ct.IsCancellationRequested)
         {
-            try { await RunOnceAsync(ct); }
-            catch (Exception ex) { logger.LogWarning(ex, "Location maintenance pass failed."); }
+            try
+            {
+                await RunOnceAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Location maintenance pass failed.");
+            }
 
-            try { await Task.Delay(TimeSpan.FromHours(1), ct); }
-            catch (OperationCanceledException) { break; }
+            try
+            {
+                await Task.Delay(TimeSpan.FromHours(1), ct);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
     }
 

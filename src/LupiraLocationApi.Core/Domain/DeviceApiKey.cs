@@ -7,11 +7,18 @@ namespace LupiraLocationApi.Core.Domain;
 public sealed class DeviceApiKey
 {
     public Guid Id { get; set; }
+
     public Guid PrincipalId { get; set; }
+
     public Guid DeviceId { get; set; }
-    public string KeyHash { get; set; } = "";
+
+    public string KeyHash { get; set; } = string.Empty;
+
     public string[] Scopes { get; set; } = ["ingest"];
+
     public DateTimeOffset CreatedAt { get; set; }
+
     public DateTimeOffset? RevokedAt { get; set; }
+
     public DateTimeOffset? LastUsedAt { get; set; }
 }

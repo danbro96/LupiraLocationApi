@@ -17,7 +17,10 @@ public sealed class PartitionManager
     public async Task EnsureAsync(NpgsqlConnection conn, NpgsqlTransaction? tx, string parentTable, PartitionInterval interval, DateTimeOffset ts, CancellationToken ct = default)
     {
         var (name, lower, upper) = Bounds(parentTable, interval, ts);
-        lock (_gate) { if (!_ensured.Add(name)) return; }
+        lock (_gate)
+        {
+            if (!_ensured.Add(name)) return;
+        }
 
         var sql = $"CREATE TABLE IF NOT EXISTS telemetry.{name} PARTITION OF telemetry.{parentTable} " +
                   $"FOR VALUES FROM ('{Literal(lower)}') TO ('{Literal(upper)}')";
@@ -29,7 +32,10 @@ public sealed class PartitionManager
         catch
         {
             // Failed to create — forget it so a later attempt retries.
-            lock (_gate) { _ensured.Remove(name); }
+            lock (_gate)
+            {
+                _ensured.Remove(name);
+            }
 
             throw;
         }
@@ -57,7 +63,10 @@ public sealed class PartitionManager
             if (upper > cutoff) continue;
             await using var drop = new NpgsqlCommand($"DROP TABLE IF EXISTS telemetry.{name}", conn);
             await drop.ExecuteNonQueryAsync(ct);
-            lock (_gate) { _ensured.Remove(name); }
+            lock (_gate)
+            {
+                _ensured.Remove(name);
+            }
         }
     }
 

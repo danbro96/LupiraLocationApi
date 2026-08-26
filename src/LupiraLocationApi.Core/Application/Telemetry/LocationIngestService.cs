@@ -39,7 +39,11 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
         {
             if (string.IsNullOrWhiteSpace(line)) continue;
             submitted++;
-            if (submitted > MaxRows) { rejects.Add(new IngestReject { Seq = null, Reason = "batch_too_large" }); break; }
+            if (submitted > MaxRows)
+            {
+                rejects.Add(new IngestReject { Seq = null, Reason = "batch_too_large" });
+                break;
+            }
 
             var (fix, reason, seq) = ParseFix(line, maxFuture, minPast);
             if (fix is not null) accepted.Add(fix);
@@ -99,17 +103,43 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
     private static async Task<int> InsertAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid pid, Guid did, List<LocationFix> rows, CancellationToken ct)
     {
         var n = rows.Count;
-        var ts = new DateTime[n]; var seq = new long[n]; var lat = new double[n]; var lon = new double[n];
-        var acc = new double?[n]; var alt = new double?[n]; var vacc = new double?[n]; var hdg = new double?[n]; var hacc = new double?[n];
-        var spd = new double?[n]; var sacc = new double?[n]; var prov = new short[n]; var act = new short[n];
-        var aconf = new short?[n]; var bat = new short?[n]; var moving = new bool?[n]; var mock = new bool[n];
+        var ts = new DateTime[n];
+        var seq = new long[n];
+        var lat = new double[n];
+        var lon = new double[n];
+        var acc = new double?[n];
+        var alt = new double?[n];
+        var vacc = new double?[n];
+        var hdg = new double?[n];
+        var hacc = new double?[n];
+        var spd = new double?[n];
+        var sacc = new double?[n];
+        var prov = new short[n];
+        var act = new short[n];
+        var aconf = new short?[n];
+        var bat = new short?[n];
+        var moving = new bool?[n];
+        var mock = new bool[n];
         for (var i = 0; i < n; i++)
         {
             var f = rows[i];
-            ts[i] = f.Ts.UtcDateTime; seq[i] = f.Seq; lat[i] = f.Lat; lon[i] = f.Lon;
-            acc[i] = f.AccuracyM; alt[i] = f.AltitudeM; vacc[i] = f.VerticalAccM; hdg[i] = f.HeadingDeg; hacc[i] = f.HeadingAccDeg;
-            spd[i] = f.SpeedMps; sacc[i] = f.SpeedAccMps; prov[i] = (short) f.Provider; act[i] = (short) f.Activity;
-            aconf[i] = f.ActivityConf; bat[i] = f.BatteryPct; moving[i] = f.IsMoving; mock[i] = f.IsMock;
+            ts[i] = f.Ts.UtcDateTime;
+            seq[i] = f.Seq;
+            lat[i] = f.Lat;
+            lon[i] = f.Lon;
+            acc[i] = f.AccuracyM;
+            alt[i] = f.AltitudeM;
+            vacc[i] = f.VerticalAccM;
+            hdg[i] = f.HeadingDeg;
+            hacc[i] = f.HeadingAccDeg;
+            spd[i] = f.SpeedMps;
+            sacc[i] = f.SpeedAccMps;
+            prov[i] = (short) f.Provider;
+            act[i] = (short) f.Activity;
+            aconf[i] = f.ActivityConf;
+            bat[i] = f.BatteryPct;
+            moving[i] = f.IsMoving;
+            mock[i] = f.IsMock;
         }
 
         const string sql = """
@@ -180,8 +210,14 @@ public sealed class LocationIngestService(NpgsqlDataSource db, PartitionManager 
     private static (LocationFix? Fix, string? Reason, long? Seq) ParseFix(string line, DateTimeOffset maxFuture, DateTimeOffset minPast)
     {
         JsonDocument doc;
-        try { doc = JsonDocument.Parse(line); }
-        catch { return (null, "invalid_json", null); }
+        try
+        {
+            doc = JsonDocument.Parse(line);
+        }
+        catch
+        {
+            return (null, "invalid_json", null);
+        }
 
         using (doc)
         {

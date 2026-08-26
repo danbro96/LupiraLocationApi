@@ -4,6 +4,8 @@ namespace LupiraLocationApi.Core.Dtos.Location;
 public sealed class LocationCursor
 {
     public required Guid DeviceId { get; set; }
+
     public long? LastSeq { get; set; }
+
     public DateTimeOffset? LastTs { get; set; }
 }
