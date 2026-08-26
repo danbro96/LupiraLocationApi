@@ -1,5 +1,5 @@
-using LupiraLocationApi.Application.Telemetry;
-using LupiraLocationApi.Telemetry;
+using LupiraLocationApi.Core.Application.Telemetry;
+using LupiraLocationApi.Core.Telemetry;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

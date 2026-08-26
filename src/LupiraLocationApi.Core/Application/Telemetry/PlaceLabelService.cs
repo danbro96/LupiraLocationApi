@@ -1,10 +1,10 @@
 using System.Text.Json;
-using LupiraLocationApi.Domain.Telemetry;
+using LupiraLocationApi.Core.Domain.Telemetry;
 using Marten;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace LupiraLocationApi.Application.Telemetry;
+namespace LupiraLocationApi.Core.Application.Telemetry;
 
 /// <summary>Reverse-geocodes a coordinate to a place label, resolve-once-and-freeze into a cache keyed by a quantized
 /// (~100 m) coordinate. Uses a self-hosted Nominatim if <c>Nominatim:BaseUrl</c> is configured; otherwise (and on any

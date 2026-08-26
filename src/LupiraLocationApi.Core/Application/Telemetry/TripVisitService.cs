@@ -1,10 +1,10 @@
-using LupiraLocationApi.Domain.Telemetry;
-using LupiraLocationApi.Dtos.Location;
+using LupiraLocationApi.Core.Domain.Telemetry;
+using LupiraLocationApi.Core.Dtos.Location;
 using Marten;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace LupiraLocationApi.Application.Telemetry;
+namespace LupiraLocationApi.Core.Application.Telemetry;
 
 /// <summary>Derives Visits (stay-points), Trips (movement between stays), and a DailyLocationSummary from a day's raw
 /// fixes, and materializes them as Marten docs in the <c>location</c> schema (so they survive raw-GPS retention drop).

@@ -1,9 +1,9 @@
 using Marten;
-using LupiraLocationApi.Application.Telemetry;
-using LupiraLocationApi.Domain;
-using LupiraLocationApi.Dtos.Devices;
-using LupiraLocationApi.Dtos.Location;
-using LupiraLocationApi.Dtos.Me;
+using LupiraLocationApi.Core.Application.Telemetry;
+using LupiraLocationApi.Core.Domain;
+using LupiraLocationApi.Core.Dtos.Devices;
+using LupiraLocationApi.Core.Dtos.Location;
+using LupiraLocationApi.Core.Dtos.Me;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Net.Http.Headers;

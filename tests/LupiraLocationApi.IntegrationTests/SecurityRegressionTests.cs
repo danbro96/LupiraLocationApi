@@ -1,6 +1,6 @@
-using LupiraLocationApi.Domain.Identity;
-using LupiraLocationApi.Dtos.Devices;
-using LupiraLocationApi.Dtos.Location;
+using LupiraLocationApi.Core.Domain.Identity;
+using LupiraLocationApi.Core.Dtos.Devices;
+using LupiraLocationApi.Core.Dtos.Location;
 using System.Net.Http.Json;
 using System.Net;
 using Xunit;

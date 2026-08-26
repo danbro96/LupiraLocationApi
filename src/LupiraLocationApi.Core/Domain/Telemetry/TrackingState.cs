@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain.Telemetry;
+namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>Per-device tracking kill-switch. While paused, location ingest is accepted (202) but discarded, and the app
 /// learns to stop collecting via the ingest state endpoint. Composite id (record-agnostic: principal + device).</summary>

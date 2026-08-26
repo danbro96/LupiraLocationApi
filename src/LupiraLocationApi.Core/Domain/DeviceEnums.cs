@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace LupiraLocationApi.Domain;
+namespace LupiraLocationApi.Core.Domain;
 
 /// <summary>Kind of registered device that feeds location telemetry.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<DeviceKind>))]

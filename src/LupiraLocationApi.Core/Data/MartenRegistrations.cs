@@ -1,10 +1,10 @@
-using LupiraLocationApi.Domain;
-using LupiraLocationApi.Domain.Identity;
-using LupiraLocationApi.Domain.Telemetry;
+using LupiraLocationApi.Core.Domain;
+using LupiraLocationApi.Core.Domain.Identity;
+using LupiraLocationApi.Core.Domain.Telemetry;
 using Marten;
 using Weasel.Core;
 
-namespace LupiraLocationApi.Data;
+namespace LupiraLocationApi.Core.Data;
 
 /// <summary>Configures the Marten store for the Location API in the <c>location</c> schema: plain documents only
 /// (identity, the devices that feed location telemetry, and the derived location intelligence). The high-frequency

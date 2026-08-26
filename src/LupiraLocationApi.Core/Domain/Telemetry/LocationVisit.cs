@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain.Telemetry;
+namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>A stay-point: a cluster of fixes where the principal dwelled. Materialized by the rollup job (so it survives
 /// raw-GPS retention drop) into the <c>location</c> schema. <see cref="PlaceLabel"/> is the frozen reverse-geocoded name.</summary>

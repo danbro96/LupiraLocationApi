@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain.Telemetry;
+namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>Watermark for the location rollup so the maintenance service is resumable across restarts (one row).</summary>
 public sealed class LocationRollupCheckpoint

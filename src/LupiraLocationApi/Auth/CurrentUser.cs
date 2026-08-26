@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using LupiraLocationApi.Application;
-using LupiraLocationApi.Domain.Identity;
+using LupiraLocationApi.Core.Application;
+using LupiraLocationApi.Core.Domain.Identity;
 
 namespace LupiraLocationApi.Auth;
 

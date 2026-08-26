@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using LupiraLocationApi.Domain;
+using LupiraLocationApi.Core.Domain;
 using Marten;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;

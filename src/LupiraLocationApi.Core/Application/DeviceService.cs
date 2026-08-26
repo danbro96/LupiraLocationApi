@@ -1,9 +1,9 @@
-using LupiraLocationApi.Domain;
-using LupiraLocationApi.Dtos.Devices;
-using LupiraLocationApi.Mappers;
+using LupiraLocationApi.Core.Domain;
+using LupiraLocationApi.Core.Dtos.Devices;
+using LupiraLocationApi.Core.Mappers;
 using Marten;
 
-namespace LupiraLocationApi.Application;
+namespace LupiraLocationApi.Core.Application;
 
 /// <summary>Registers and manages a principal's location-tracking devices (plain-doc CRUD). Registration mints a
 /// per-device ingest API key (the plaintext is returned once); retiring a device revokes its keys. Every device is

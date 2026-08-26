@@ -1,4 +1,4 @@
-using LupiraLocationApi.Dtos.Me;
+using LupiraLocationApi.Core.Dtos.Me;
 using LupiraLocationApi.Handlers;
 
 namespace LupiraLocationApi.Endpoints;

@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain;
+namespace LupiraLocationApi.Core.Domain;
 
 /// <summary>A registered device that feeds a principal's location telemetry (plain document — pure registration
 /// metadata). Telemetry rows carry the <see cref="Id"/> by value; per-device ingest credentials live in

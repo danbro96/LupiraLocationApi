@@ -1,12 +1,12 @@
 using System.Text.Json.Serialization;
 using LupiraLocationApi.Auth;
 using LupiraLocationApi.Background;
-using LupiraLocationApi.Domain;
+using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Endpoints;
 using LupiraLocationApi.Handlers;
 using LupiraLocationApi.Health;
 using LupiraLocationApi.Mcp;
-using LupiraLocationApi.Telemetry;
+using LupiraLocationApi.Core.Telemetry;
 using Marten;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

@@ -1,5 +1,5 @@
-using LupiraLocationApi.Dtos.Location;
-using LupiraLocationApi.Telemetry;
+using LupiraLocationApi.Core.Dtos.Location;
+using LupiraLocationApi.Core.Telemetry;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using System.Net.Http.Json;

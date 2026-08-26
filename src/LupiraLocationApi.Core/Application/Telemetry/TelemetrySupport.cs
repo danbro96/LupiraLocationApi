@@ -1,7 +1,7 @@
-using LupiraLocationApi.Domain.Telemetry;
+using LupiraLocationApi.Core.Domain.Telemetry;
 using Npgsql;
 
-namespace LupiraLocationApi.Application.Telemetry;
+namespace LupiraLocationApi.Core.Application.Telemetry;
 
 /// <summary>Great-circle distance (Haversine), metres.</summary>
 internal static class Geo

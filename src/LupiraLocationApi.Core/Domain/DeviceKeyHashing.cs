@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace LupiraLocationApi.Domain;
+namespace LupiraLocationApi.Core.Domain;
 
 /// <summary>Pure helpers for the per-device ingest credential <c>{keyId:N}.{secret}</c>. The secret is 32 bytes of
 /// CSPRNG entropy (hex), shown once at registration; only its SHA-256 hash is stored. A 256-bit random secret makes an

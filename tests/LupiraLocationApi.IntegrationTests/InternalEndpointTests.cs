@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using LupiraLocationApi.Dtos.Location;
+using LupiraLocationApi.Core.Dtos.Location;
 using Xunit;
 
 namespace LupiraLocationApi.IntegrationTests;
@@ -42,7 +42,7 @@ public class InternalEndpointTests(LocationApiTestFactory factory) : Integration
 
         await using var session = Store.LightweightSession();
         Assert.Empty(await Marten.QueryableExtensions.ToListAsync(
-            session.Query<Domain.Identity.Principal>().Where(p => p.AuthentikSub == "unknown-sub")));
+            session.Query<LupiraLocationApi.Core.Domain.Identity.Principal>().Where(p => p.AuthentikSub == "unknown-sub")));
     }
 
     [Fact]

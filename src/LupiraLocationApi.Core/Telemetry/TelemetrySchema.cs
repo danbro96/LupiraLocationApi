@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace LupiraLocationApi.Telemetry;
+namespace LupiraLocationApi.Core.Telemetry;
 
 /// <summary>Owns the raw <c>telemetry</c> schema (location tables + indexes), applied via the app's <c>--apply-schema</c>
 /// one-shot after Marten's own apply. Marten's schema-diff only inspects the <c>location</c> schema, so it never touches

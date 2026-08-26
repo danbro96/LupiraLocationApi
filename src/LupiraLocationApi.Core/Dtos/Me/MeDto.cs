@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Dtos.Me;
+namespace LupiraLocationApi.Core.Dtos.Me;
 
 /// <summary>The resolved local identity of the caller.</summary>
 public sealed class MeDto

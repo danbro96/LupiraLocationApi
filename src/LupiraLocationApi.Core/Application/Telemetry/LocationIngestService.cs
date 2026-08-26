@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Text.Json;
-using LupiraLocationApi.Domain.Telemetry;
-using LupiraLocationApi.Dtos.Location;
-using LupiraLocationApi.Telemetry;
+using LupiraLocationApi.Core.Domain.Telemetry;
+using LupiraLocationApi.Core.Dtos.Location;
+using LupiraLocationApi.Core.Telemetry;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace LupiraLocationApi.Application.Telemetry;
+namespace LupiraLocationApi.Core.Application.Telemetry;
 
 /// <summary>Ingests batched GPS fixes (NDJSON, one fix per line). Idempotent and resumable: rows are merged with
 /// <c>ON CONFLICT DO NOTHING</c> keyed on the device-assigned <c>seq</c>, partitions are pre-created on demand for any

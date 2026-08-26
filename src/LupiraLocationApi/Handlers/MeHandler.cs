@@ -1,5 +1,5 @@
 using LupiraLocationApi.Auth;
-using LupiraLocationApi.Dtos.Me;
+using LupiraLocationApi.Core.Dtos.Me;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace LupiraLocationApi.Handlers;

@@ -1,4 +1,4 @@
-using LupiraLocationApi.Application;
+using LupiraLocationApi.Core.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace LupiraLocationApi.Http;

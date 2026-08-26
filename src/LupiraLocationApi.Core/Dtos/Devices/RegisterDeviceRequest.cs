@@ -1,6 +1,6 @@
-using LupiraLocationApi.Domain;
+using LupiraLocationApi.Core.Domain;
 
-namespace LupiraLocationApi.Dtos.Devices;
+namespace LupiraLocationApi.Core.Dtos.Devices;
 
 /// <summary>Register a device that will feed location telemetry.</summary>
 public sealed class RegisterDeviceRequest

@@ -1,4 +1,4 @@
-using LupiraLocationApi.Telemetry;
+using LupiraLocationApi.Core.Telemetry;
 using Marten;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

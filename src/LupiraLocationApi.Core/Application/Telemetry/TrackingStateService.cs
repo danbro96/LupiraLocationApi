@@ -1,8 +1,8 @@
-using LupiraLocationApi.Domain.Telemetry;
-using LupiraLocationApi.Dtos.Location;
+using LupiraLocationApi.Core.Domain.Telemetry;
+using LupiraLocationApi.Core.Dtos.Location;
 using Marten;
 
-namespace LupiraLocationApi.Application.Telemetry;
+namespace LupiraLocationApi.Core.Application.Telemetry;
 
 /// <summary>The per-device tracking kill-switch (pause/resume). While paused, location ingest is accepted but discarded;
 /// the uploader polls the state to learn it should stop collecting.</summary>

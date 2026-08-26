@@ -1,6 +1,6 @@
-using LupiraLocationApi.Domain;
+using LupiraLocationApi.Core.Domain;
 
-namespace LupiraLocationApi.Dtos.Devices;
+namespace LupiraLocationApi.Core.Dtos.Devices;
 
 /// <summary>A registered device.</summary>
 public sealed class DeviceDto

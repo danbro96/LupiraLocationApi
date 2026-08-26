@@ -1,10 +1,10 @@
-using LupiraLocationApi.Domain.Telemetry;
-using LupiraLocationApi.Dtos.Location;
+using LupiraLocationApi.Core.Domain.Telemetry;
+using LupiraLocationApi.Core.Dtos.Location;
 using Marten;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace LupiraLocationApi.Application.Telemetry;
+namespace LupiraLocationApi.Core.Application.Telemetry;
 
 /// <summary>Read API over a principal's own location data. Every query hard-filters <c>principal_id = caller</c>, which
 /// IS the authorization boundary — a foreign device id simply matches nothing. Raw track is owner-only; the coarse

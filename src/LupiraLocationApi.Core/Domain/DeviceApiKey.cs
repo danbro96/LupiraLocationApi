@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain;
+namespace LupiraLocationApi.Core.Domain;
 
 /// <summary>A long-lived ingest credential bound to a single <c>(PrincipalId, DeviceId)</c> and the <c>ingest</c> scope.
 /// The plaintext secret is shown once at registration; only its hash is stored. Validated by the host's

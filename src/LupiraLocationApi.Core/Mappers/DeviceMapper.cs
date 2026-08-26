@@ -1,7 +1,7 @@
-using LupiraLocationApi.Domain;
-using LupiraLocationApi.Dtos.Devices;
+using LupiraLocationApi.Core.Domain;
+using LupiraLocationApi.Core.Dtos.Devices;
 
-namespace LupiraLocationApi.Mappers;
+namespace LupiraLocationApi.Core.Mappers;
 
 internal static class DeviceMapper
 {

@@ -1,6 +1,6 @@
-using LupiraLocationApi.Application;
+using LupiraLocationApi.Core.Application;
 using LupiraLocationApi.Auth;
-using LupiraLocationApi.Dtos.Devices;
+using LupiraLocationApi.Core.Dtos.Devices;
 using LupiraLocationApi.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 

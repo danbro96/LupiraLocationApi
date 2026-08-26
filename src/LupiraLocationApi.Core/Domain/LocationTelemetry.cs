@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace LupiraLocationApi.Domain;
+namespace LupiraLocationApi.Core.Domain;
 
 /// <summary>Domain-specific tracing source, registered with OpenTelemetry in Program.cs. (Named to avoid colliding with
 /// the <c>LupiraLocationApi.Domain.Telemetry</c> namespace that holds the time-series domain types.)</summary>

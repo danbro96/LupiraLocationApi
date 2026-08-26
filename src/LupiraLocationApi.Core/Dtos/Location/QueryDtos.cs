@@ -1,6 +1,6 @@
-using LupiraLocationApi.Domain.Telemetry;
+using LupiraLocationApi.Core.Domain.Telemetry;
 
-namespace LupiraLocationApi.Dtos.Location;
+namespace LupiraLocationApi.Core.Dtos.Location;
 
 /// <summary>Latest-known location for a device.</summary>
 public sealed class CurrentFixDto

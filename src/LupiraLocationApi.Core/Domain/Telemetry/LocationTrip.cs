@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain.Telemetry;
+namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>Movement between two stays. Materialized by the rollup job into the <c>location</c> schema.</summary>
 public sealed class LocationTrip

@@ -1,4 +1,4 @@
-namespace LupiraLocationApi.Domain.Telemetry;
+namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>A single validated GPS fix from an ingest batch (in-memory; principal/device are stamped server-side, not
 /// carried here).</summary>
