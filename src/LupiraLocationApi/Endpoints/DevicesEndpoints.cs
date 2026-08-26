@@ -12,14 +12,12 @@ public static class DevicesEndpoints
         g.MapGet("/", (DevicesHandler h, CancellationToken ct) => h.ListAsync(ct))
             .WithSummary("List the caller's registered location-tracking devices.")
             .Produces<List<DeviceDto>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("ListDevices");
 
         g.MapPost("/", (RegisterDeviceRequest body, DevicesHandler h, CancellationToken ct) => h.RegisterAsync(body, ct))
             .WithSummary("Register a device; returns the one-time ingest API key.")
             .Produces<RegisterDeviceResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("RegisterDevice");
 
         g.MapPut("/{id:guid}", (Guid id, RenameDeviceRequest body, DevicesHandler h, CancellationToken ct) => h.RenameAsync(id, body, ct))
@@ -28,7 +26,6 @@ public static class DevicesEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("RenameDevice");
 
         g.MapDelete("/{id:guid}", (Guid id, DevicesHandler h, CancellationToken ct) => h.RetireAsync(id, ct))
@@ -36,7 +33,6 @@ public static class DevicesEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
             .WithName("RetireDevice");
         return app;
     }
