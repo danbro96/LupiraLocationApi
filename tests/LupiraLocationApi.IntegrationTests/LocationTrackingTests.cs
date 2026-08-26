@@ -1,6 +1,6 @@
-using LupiraLocationApi.Core.Dtos.Location;
-using System.Net.Http.Json;
 using System.Net;
+using System.Net.Http.Json;
+using LupiraLocationApi.Core.Dtos.Location;
 using Xunit;
 
 namespace LupiraLocationApi.IntegrationTests;

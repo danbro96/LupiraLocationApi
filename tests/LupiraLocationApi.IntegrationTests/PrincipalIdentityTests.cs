@@ -1,6 +1,6 @@
 using LupiraLocationApi.Core.Application;
-using LupiraLocationApi.Core.Domain.Identity;
 using LupiraLocationApi.Core.Domain;
+using LupiraLocationApi.Core.Domain.Identity;
 using Marten;
 using Xunit;
 

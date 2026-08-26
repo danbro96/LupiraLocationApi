@@ -1,7 +1,7 @@
+using System.Net;
+using System.Net.Http.Json;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Dtos.Devices;
-using System.Net.Http.Json;
-using System.Net;
 using Xunit;
 
 namespace LupiraLocationApi.IntegrationTests;

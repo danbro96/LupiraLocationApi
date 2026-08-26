@@ -1,14 +1,14 @@
-using Marten;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Dtos.Devices;
 using LupiraLocationApi.Core.Dtos.Location;
 using LupiraLocationApi.Core.Dtos.Me;
+using Marten;
 using Microsoft.Extensions.DependencyInjection;
-using System.Globalization;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text;
 using Xunit;
 
 namespace LupiraLocationApi.IntegrationTests;
