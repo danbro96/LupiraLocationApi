@@ -23,7 +23,7 @@ public static class DevicesEndpoints
         g.MapPut("/{id:guid}", (Guid id, RenameDeviceRequest body, DevicesHandler h, CancellationToken ct) => h.RenameAsync(id, body, ct))
             .WithSummary("Rename a device.")
             .Produces<DeviceDto>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .WithName("RenameDevice");
@@ -31,7 +31,7 @@ public static class DevicesEndpoints
         g.MapDelete("/{id:guid}", (Guid id, DevicesHandler h, CancellationToken ct) => h.RetireAsync(id, ct))
             .WithSummary("Retire a device (revokes its ingest keys).")
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithName("RetireDevice");
         return app;
