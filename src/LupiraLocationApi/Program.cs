@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using LupiraLocationApi.Auth;
 using LupiraLocationApi.Core.Domain;
@@ -165,6 +166,24 @@ builder.Services.AddOpenApi("v1", options =>
         };
         document.Components.Schemas ??= new Dictionary<string, IOpenApiSchema>();
         document.Components.Schemas["ProblemDetails"] = ProblemDetailsSchema();
+        return Task.CompletedTask;
+    });
+    // A nullable use of an enum (ItemStatus?) makes the framework append null to the shared
+    // component schema, although the property's own oneOf already carries the nullability.
+    // Generators read that null onto the enum type itself, so non-nullable uses inherit it too.
+    options.AddSchemaTransformer((schema, context, _) =>
+    {
+        if (schema.Enum is { Count: > 0 } members)
+        {
+            for (var i = members.Count - 1; i >= 0; i--)
+            {
+                if (members[i] is null || members[i]!.GetValueKind() == JsonValueKind.Null)
+                {
+                    members.RemoveAt(i);
+                }
+            }
+        }
+
         return Task.CompletedTask;
     });
     options.AddOperationTransformer((operation, context, _) =>
