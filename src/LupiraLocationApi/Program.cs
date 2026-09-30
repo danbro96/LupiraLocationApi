@@ -41,7 +41,9 @@ builder.Services.AddScoped<InternalLocationHandler>();
 
 // MCP server for the agent (read-only, derived/coarse tools), mounted at /mcp over Streamable HTTP.
 // LAN/WireGuard-only — not published through the tunnel (see UseLanOnlySurfaces + the MapMcp call below).
-builder.Services.AddMcpServer().WithHttpTransport().WithTools<LocationTools>();
+builder.Services.AddMcpServer().WithHttpTransport()
+    .WithRequestFilters(f => f.AddCallToolFilter(StrictToolArguments.Filter))
+    .WithTools<LocationTools>();
 
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
