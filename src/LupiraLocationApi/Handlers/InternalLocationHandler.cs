@@ -1,5 +1,5 @@
 using Lupira.Hosting.Problems;
-using LupiraLocationApi.Core.Application;
+using Lupira.Identity.Marten;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Dtos.Location;
 using Microsoft.AspNetCore.Http.HttpResults;

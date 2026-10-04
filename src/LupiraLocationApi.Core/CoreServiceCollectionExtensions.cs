@@ -1,3 +1,4 @@
+using Lupira.Identity.Marten;
 using LupiraLocationApi.Core.Application;
 using LupiraLocationApi.Core.Data;
 using Marten;
@@ -35,7 +36,7 @@ public static class CoreServiceCollectionExtensions
             return NpgsqlDataSource.Create(connectionString);
         });
 
-        services.AddScoped<PrincipalDirectory>();
+        services.AddLupiraPrincipalDirectory();
         services.AddScoped<DeviceService>();
 
         services.AddLocationTelemetry();

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using Lupira.Testing.Postgres;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Dtos.Devices;

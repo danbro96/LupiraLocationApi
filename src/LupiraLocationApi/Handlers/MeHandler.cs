@@ -1,4 +1,4 @@
-using LupiraLocationApi.Auth;
+using Lupira.Identity.Marten.AspNetCore;
 using LupiraLocationApi.Core.Dtos.Me;
 using Microsoft.AspNetCore.Http.HttpResults;
 

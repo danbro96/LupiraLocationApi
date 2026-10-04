@@ -1,3 +1,4 @@
+using Lupira.Auth.DeviceKeys;
 using Lupira.Results;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Dtos.Devices;

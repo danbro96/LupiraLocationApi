@@ -1,5 +1,5 @@
+using Lupira.Postgres.Partitions;
 using LupiraLocationApi.Core.Application.Telemetry;
-using LupiraLocationApi.Core.Telemetry;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -8,7 +8,7 @@ public static class TelemetryServiceCollectionExtensions
 {
     public static IServiceCollection AddLocationTelemetry(this IServiceCollection services)
     {
-        services.AddSingleton<PartitionManager>();
+        services.AddSingleton(new PartitionManager("telemetry"));
         services.AddScoped<TrackingStateService>();
         services.AddScoped<PlaceLabelService>();
         services.AddScoped<LocationIngestService>();

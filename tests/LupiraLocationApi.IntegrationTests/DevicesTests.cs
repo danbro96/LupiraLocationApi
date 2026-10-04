@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Lupira.Testing.Postgres;
 using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Dtos.Devices;
 using Xunit;

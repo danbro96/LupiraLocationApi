@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Lupira.Testing.Postgres;
 using LupiraLocationApi.Core.Dtos.Location;
 using Xunit;
 
@@ -8,12 +9,7 @@ namespace LupiraLocationApi.IntegrationTests;
 /// <summary>The /internal/location/place-at seam (consumer: lupira-photo-api's geotag fallback).</summary>
 public class InternalEndpointTests(LocationApiTestFactory factory) : IntegrationTest(factory)
 {
-    private HttpClient ServiceClient()
-    {
-        var client = Factory.ApiClient("photo-svc@internal.test");
-        client.DefaultRequestHeaders.Add("X-Dev-Scopes", "internal:read");
-        return client;
-    }
+    private HttpClient ServiceClient() => Factory.ScopedClient("photo-svc@internal.test", "internal:read");
 
     [Fact]
     public async Task PlaceAt_ResolvesSubAndReturnsQuantizedFixMatch()
@@ -42,7 +38,7 @@ public class InternalEndpointTests(LocationApiTestFactory factory) : Integration
 
         await using var session = Store.LightweightSession();
         Assert.Empty(await Marten.QueryableExtensions.ToListAsync(
-            session.Query<LupiraLocationApi.Core.Domain.Identity.Principal>().Where(p => p.AuthentikSub == "unknown-sub")));
+            session.Query<Lupira.Identity.Marten.Principal>().Where(p => p.AuthentikSub == "unknown-sub")));
     }
 
     [Fact]

@@ -94,12 +94,12 @@ raw lat·lon track tools, no mutations. Tools call the same Core services as RES
 | Web | ASP.NET Core Minimal APIs | 10 |
 | Document store | [Marten](https://martendb.io) on PostgreSQL (plain documents — not event-sourced) | 9.6.0 |
 | Time-series | Raw Npgsql over native range-partitioned tables | (Npgsql via Marten) |
-| OpenAPI | `Microsoft.AspNetCore.OpenApi` | 10.0.9 |
-| Auth | `Microsoft.AspNetCore.Authentication.JwtBearer` | 10.0.9 |
+| OpenAPI | `Microsoft.AspNetCore.OpenApi` + `Lupira.Hosting.OpenApi` | 10.0.12 / 0.1.0 |
+| Auth | `Lupira.Auth.Jwt` + `Lupira.Auth.DeviceKeys.AspNetCore` | 0.1.0 |
 | Agent surface | `ModelContextProtocol.AspNetCore` (MCP, Streamable HTTP) | 1.4.0 |
-| API reference UI | `Scalar.AspNetCore` | 2.16.4 |
+| API reference UI | `Scalar.AspNetCore` (via `Lupira.Hosting.OpenApi`) | 2.17.13 |
 | Telemetry | OpenTelemetry (traces/metrics/logs, OTLP exporter) | 1.16.x / 1.15.x |
-| Tests | xUnit + Testcontainers for PostgreSQL | 2.9.3 / 4.x |
+| Tests | xUnit + `Lupira.Testing.Postgres` (Testcontainers) / `Lupira.Testing.Mcp` | 2.9.3 / 0.1.0 |
 
 Requires PostgreSQL (any reasonably current version; only stock SQL + native partitioning is used).
 
@@ -205,15 +205,15 @@ and builds + pushes the container image.
 ```
 src/
   LupiraLocationApi.Core/      class library — no ASP.NET dependency
-    Domain/                    Principal, Device, DeviceApiKey, Telemetry/* (Visits/Trips/etc.), enums
+    Domain/                    Device, Telemetry/* (Visits/Trips/etc.), enums
     Application/               transport-neutral services + OpResult; Telemetry/ ingest/query/rollup
     Dtos/  Mappers/            request/response shapes + mapping
   LupiraLocationApi/           ASP.NET host (thin transport/composition layer)
     Endpoints/                 Minimal-API route groups
     Handlers/                  endpoint handlers (call Core services)
     Mcp/                       MCP agent tools (read-only; call Core services directly)
-    Auth/                      OIDC + device-key + dev-header schemes, CurrentUser
-    Health/  Background/       readiness check; partition/rollup/retention service
+    Auth/                      device-key store
+    Workers/                   partition/rollup/retention service
 tests/
   LupiraLocationApi.Core.Tests/      unit tests (pure helpers, value objects)
   LupiraLocationApi.Server.Tests/    integration tests (Testcontainers Postgres)

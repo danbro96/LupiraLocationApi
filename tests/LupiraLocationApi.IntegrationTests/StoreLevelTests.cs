@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
+using Lupira.Postgres.Partitions;
+using Lupira.Testing.Postgres;
 using LupiraLocationApi.Core.Dtos.Location;
-using LupiraLocationApi.Core.Telemetry;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;

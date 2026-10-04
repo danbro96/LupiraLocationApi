@@ -20,7 +20,7 @@ The solution is two projects, and the split is the architectural boundary:
 HTTP ─▶ Endpoints/ ─▶ Handlers/ ─▶ Core: Application services ─▶ Marten (location) + Npgsql (telemetry)
   │                       │                     │
   └─ MCP ─▶ Mcp/ tools ───┘                  OpResult  ──▶  OpResultMap (RFC 7807) on the way back
-                       Auth/ (CurrentUser)
+                       CurrentUser
 ```
 
 A second thin transport adapter, **`Mcp/`** ([LocationTools.cs](../src/LupiraLocationApi/Mcp/LocationTools.cs)),
@@ -63,8 +63,8 @@ schema-diff only inspects the `location` schema, so it never touches `telemetry`
 Identity is **just-in-time provisioned** and local to this service:
 
 - A `Principal` is resolved from the caller's OIDC claims by `sub` first, then email, and created on first
-  sight ([PrincipalDirectory.cs](../src/LupiraLocationApi.Core/Application/PrincipalDirectory.cs)). The host's
-  `CurrentUser` ([Auth/CurrentUser.cs](../src/LupiraLocationApi/Auth/CurrentUser.cs)) reads the claims; the
+  sight (`PrincipalDirectory`, `Lupira.Identity.Marten`). The host's
+  `CurrentUser` (`Lupira.Identity.Marten.AspNetCore`) reads the claims; the
   directory never sees the request. `AuthentikSub` holds the OIDC `sub` (the name is historical — any OIDC
   issuer works); email is a mutable lookup attribute. There is no shared user table — the `sub` is the only
   cross-service join key.
@@ -77,12 +77,13 @@ Identity is **just-in-time provisioned** and local to this service:
 [Program.cs](../src/LupiraLocationApi/Program.cs) defines two policies over distinct schemes:
 
 - **`ApiPolicy`** — OIDC JWT bearer (resource-server validation against `Auth__Oidc__Authority`/`Auth__Oidc__Audience`).
-  In Development `AddLupiraDevHeaderAuth` (`Lupira.Auth.DevUser`) adds an `X-Dev-User: email` header scheme so the API can be exercised
+  In Development `AddLupiraJwt` (`Lupira.Auth.Jwt`) adds an `X-Dev-User: email` header scheme so the API can be exercised
   without an OIDC provider; it is registered **only** in Development.
 - **`IngestPolicy`** — a per-device API key
-  ([DeviceKeyAuthHandler.cs](../src/LupiraLocationApi/Auth/DeviceKeyAuthHandler.cs)). The wire credential is
+  (`DeviceKeyAuthHandler`, `Lupira.Auth.DeviceKeys.AspNetCore`, over
+  [MartenDeviceKeyStore.cs](../src/LupiraLocationApi/Auth/MartenDeviceKeyStore.cs)). The wire credential is
   `Authorization: DeviceKey {keyId}.{secret}`. Registration mints a 256-bit secret, returns it **once**, and
-  stores only its SHA-256 hash ([DeviceKeyHashing.cs](../src/LupiraLocationApi.Core/Domain/DeviceKeyHashing.cs));
+  stores only its SHA-256 hash (`DeviceKeyHashing`, `Lupira.Auth.DeviceKeys`);
   verification is constant-time. The handler resolves the `(principal, device)` the key acts for and stamps
   those ids as claims — **the ingest path takes principal/device from the key, never from the payload**, and
   a body that carries ids is rejected. Retiring a device revokes its keys.
@@ -98,7 +99,7 @@ Identity is **just-in-time provisioned** and local to this service:
    (>5 min future or older than retention), and invalid lat/lon. Bad rows become permanent `rejects`; the
    batch is capped at 10,000 rows.
 3. **Partition on demand** — for every distinct week present in the batch, ensure the weekly partition exists
-   ([PartitionManager.cs](../src/LupiraLocationApi.Core/Telemetry/PartitionManager.cs)). There is no DEFAULT
+   (`PartitionManager`, `Lupira.Postgres.Partitions`). There is no DEFAULT
    partition, so a late/backfilled fix always gets a real home.
 4. **Idempotent merge** — insert via a single `unnest(...)` array statement with `ON CONFLICT DO NOTHING`
    keyed on `(principal_id, device_id, ts, seq)`, so retries and overlapping batches are free.

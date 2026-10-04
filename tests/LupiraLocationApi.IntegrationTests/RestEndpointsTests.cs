@@ -1,3 +1,4 @@
+using Lupira.Testing.Postgres;
 using Xunit;
 
 namespace LupiraLocationApi.IntegrationTests;

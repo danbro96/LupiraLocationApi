@@ -1,5 +1,5 @@
+using Lupira.Postgres.Partitions;
 using LupiraLocationApi.Core.Application.Telemetry;
-using LupiraLocationApi.Core.Telemetry;
 using Npgsql;
 
 namespace LupiraLocationApi.Workers;

@@ -1,3 +1,5 @@
+using Lupira.Auth.DeviceKeys;
+
 namespace LupiraLocationApi.Core.Domain;
 
 /// <summary>A registered device that feeds a principal's location telemetry (plain document — pure registration

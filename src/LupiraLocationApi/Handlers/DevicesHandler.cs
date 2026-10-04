@@ -1,5 +1,5 @@
 using Lupira.Hosting.Problems;
-using LupiraLocationApi.Auth;
+using Lupira.Identity.Marten.AspNetCore;
 using LupiraLocationApi.Core.Application;
 using LupiraLocationApi.Core.Dtos.Devices;
 using Microsoft.AspNetCore.Http.HttpResults;

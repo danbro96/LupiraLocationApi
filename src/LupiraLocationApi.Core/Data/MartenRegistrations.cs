@@ -1,5 +1,6 @@
+using Lupira.Auth.DeviceKeys;
+using Lupira.Identity.Marten;
 using LupiraLocationApi.Core.Domain;
-using LupiraLocationApi.Core.Domain.Identity;
 using LupiraLocationApi.Core.Domain.Telemetry;
 using Marten;
 using Weasel.Core;
@@ -19,9 +20,7 @@ public static class MartenRegistrations
         opts.UseSystemTextJsonForSerialization(EnumStorage.AsString);
 
         // Identity + the devices that feed location telemetry.
-        // Unique sub: without it, concurrent first-sight logins fork one login into two principals.
-        // Email stays non-unique — mutable, and a placeholder row shares it until the sub upgrade lands.
-        opts.Schema.For<Principal>().Index(x => x.AuthentikSub, i => i.IsUnique = true).Index(x => x.Email);
+        opts.AddLupiraPrincipals();
         opts.Schema.For<Device>().Index(x => x.PrincipalId);
         opts.Schema.For<DeviceApiKey>().Index(x => x.PrincipalId).Index(x => x.DeviceId);
 

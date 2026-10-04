@@ -1,6 +1,6 @@
 using System.ComponentModel;
+using Lupira.Identity.Marten.AspNetCore;
 using Lupira.Mcp;
-using LupiraLocationApi.Auth;
 using LupiraLocationApi.Core.Application;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Dtos.Devices;
