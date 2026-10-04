@@ -19,7 +19,7 @@ The solution is two projects, and the split is the architectural boundary:
 ```
 HTTP ─▶ Endpoints/ ─▶ Handlers/ ─▶ Core: Application services ─▶ Marten (location) + Npgsql (telemetry)
   │                       │                     │
-  └─ MCP ─▶ Mcp/ tools ───┘                  OpResult  ──▶  Http/ (RFC 7807) on the way back
+  └─ MCP ─▶ Mcp/ tools ───┘                  OpResult  ──▶  OpResultMap (RFC 7807) on the way back
                        Auth/ (CurrentUser)
 ```
 
@@ -29,7 +29,7 @@ Its tools call the **same Core services** as the handlers — no second source o
 through the same `CurrentUser`, so every call is scoped to the caller's principal. The surface is deliberately
 **read-only and derived/coarse**: it offers visits, trips, daily summaries, coarse place-at, and movement
 stats, but no raw-track tools and no mutations. It is gated by `ApiPolicy` and meant to stay LAN/WireGuard-only
-— [Endpoints/LanOnlyExposure.cs](../src/LupiraLocationApi/Endpoints/LanOnlyExposure.cs) 404s any `/mcp` request
+— `UseLanOnlySurfaces` (`Lupira.Hosting.LanEdge`) 404s any `/mcp` request
 carrying reverse-proxy edge headers as a defence-in-depth backstop.
 
 Composition: [Program.cs](../src/LupiraLocationApi/Program.cs) registers the context via
@@ -77,7 +77,7 @@ Identity is **just-in-time provisioned** and local to this service:
 [Program.cs](../src/LupiraLocationApi/Program.cs) defines two policies over distinct schemes:
 
 - **`ApiPolicy`** — OIDC JWT bearer (resource-server validation against `Auth__Oidc__Authority`/`Auth__Oidc__Audience`).
-  In Development a `DevAuthHandler` adds an `X-Dev-User: email` header scheme so the API can be exercised
+  In Development `AddLupiraDevHeaderAuth` (`Lupira.Auth.DevUser`) adds an `X-Dev-User: email` header scheme so the API can be exercised
   without an OIDC provider; it is registered **only** in Development.
 - **`IngestPolicy`** — a per-device API key
   ([DeviceKeyAuthHandler.cs](../src/LupiraLocationApi/Auth/DeviceKeyAuthHandler.cs)). The wire credential is
@@ -140,14 +140,12 @@ label + coarsened coordinate, never the raw fix.
 
 ## Error handling & transport mapping
 
-Services return a transport-neutral [`OpResult` / `OpResult<T>`](../src/LupiraLocationApi.Core/Application/OpResult.cs)
+Services return a transport-neutral `OpResult` / `OpResult<T>` (`Lupira.Results`)
 with an `OpStatus` of `Ok` / `NotFound` / `Forbidden` / `Invalid` / `Conflict`. Expected outcomes are
 **values, not exceptions**.
 
-The host maps them to typed ASP.NET `Results<...>` unions in
-[Http/OpResultMapping.cs](../src/LupiraLocationApi/Http/OpResultMapping.cs), emitting RFC 7807
-`application/problem+json` for failures via [Http/Problems.cs](../src/LupiraLocationApi/Http/Problems.cs)
-(`400`/`403`/`409`). A status a given result shape cannot represent is a programming error and throws.
+The host maps them to typed ASP.NET `Results<...>` unions with `OpResultMap` (`Lupira.Hosting.Problems`),
+emitting RFC 7807 `application/problem+json` for failures (`400`/`403`/`409`). A status a given result shape cannot represent is a programming error and throws.
 Read-only query endpoints are always `Ok` (scoped to the caller) and return their payload directly. The
 JSON contract emits enums as their string names (`JsonStringEnumConverter`).
 

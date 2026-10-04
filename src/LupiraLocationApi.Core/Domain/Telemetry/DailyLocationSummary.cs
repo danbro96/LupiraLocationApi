@@ -1,3 +1,5 @@
+using Lupira.Primitives;
+
 namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>Per-day rollup of a principal's location. Deterministic id from (principal, date, device) so re-running a

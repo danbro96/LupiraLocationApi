@@ -209,11 +209,10 @@ src/
     Application/               transport-neutral services + OpResult; Telemetry/ ingest/query/rollup
     Dtos/  Mappers/            request/response shapes + mapping
   LupiraLocationApi/           ASP.NET host (thin transport/composition layer)
-    Endpoints/                 Minimal-API route groups (+ LanOnlyExposure LAN-only gate)
+    Endpoints/                 Minimal-API route groups
     Handlers/                  endpoint handlers (call Core services)
     Mcp/                       MCP agent tools (read-only; call Core services directly)
     Auth/                      OIDC + device-key + dev-header schemes, CurrentUser
-    Http/                      OpResult -> RFC 7807 ProblemDetails mapping
     Health/  Background/       readiness check; partition/rollup/retention service
 tests/
   LupiraLocationApi.Core.Tests/      unit tests (pure helpers, value objects)

@@ -5,7 +5,7 @@ using Xunit;
 namespace LupiraLocationApi.IntegrationTests;
 
 /// <summary>Every tool refuses an argument its schema doesn't declare, before it runs (so this has no side effects).
-/// The rules themselves are tested in LupiraGeoApi, which holds the reference copy of StrictToolArguments.</summary>
+/// The rules themselves are tested in LupiraPlatform's Lupira.Mcp.</summary>
 public sealed class McpToolArgumentsTests(LocationApiTestFactory factory) : IntegrationTest(factory)
 {
     private async Task<McpClient> ConnectAsync()

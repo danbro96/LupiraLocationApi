@@ -1,12 +1,11 @@
 using System.ComponentModel;
+using Lupira.Mcp;
 using LupiraLocationApi.Auth;
 using LupiraLocationApi.Core.Application;
-using LupiraLocationApi.Core.Application.Results;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Dtos.Devices;
 using LupiraLocationApi.Core.Dtos.Location;
 using LupiraLocationApi.Core.Dtos.Me;
-using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
 namespace LupiraLocationApi.Mcp;
@@ -35,7 +34,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     public async Task<List<DeviceDto>> ListDevices(CancellationToken ct = default)
     {
         var pid = (await user.GetAsync(ct)).Id;
-        return Require(await devices.ListAsync(pid, ct));
+        return (await devices.ListAsync(pid, ct)).Require();
     }
 
     [McpServerTool(Name = "list_visits")]
@@ -47,7 +46,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     {
         var pid = (await user.GetAsync(ct)).Id;
         var (f, t) = Range(from, to);
-        return Require(await trips.VisitsAsync(pid, f, t, ct));
+        return (await trips.VisitsAsync(pid, f, t, ct)).Require();
     }
 
     [McpServerTool(Name = "list_trips")]
@@ -59,7 +58,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     {
         var pid = (await user.GetAsync(ct)).Id;
         var (f, t) = Range(from, to);
-        return Require(await trips.TripsAsync(pid, f, t, ct));
+        return (await trips.TripsAsync(pid, f, t, ct)).Require();
     }
 
     [McpServerTool(Name = "daily_summary")]
@@ -69,7 +68,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
         CancellationToken ct = default)
     {
         var pid = (await user.GetAsync(ct)).Id;
-        return Require(await trips.SummaryAsync(pid, date, ct));
+        return (await trips.SummaryAsync(pid, date, ct)).Require();
     }
 
     [McpServerTool(Name = "place_at")]
@@ -79,7 +78,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
         CancellationToken ct = default)
     {
         var pid = (await user.GetAsync(ct)).Id;
-        return Require(await query.PlaceLabelAtAsync(pid, ts, ct));
+        return (await query.PlaceLabelAtAsync(pid, ts, ct)).Require();
     }
 
     [McpServerTool(Name = "movement_stats")]
@@ -92,7 +91,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     {
         var pid = (await user.GetAsync(ct)).Id;
         var (f, t) = Range(from, to);
-        return Require(await query.StatsAsync(pid, deviceId, f, t, ct));
+        return (await query.StatsAsync(pid, deviceId, f, t, ct)).Require();
     }
 
     /// <summary>Default window mirrors <c>LocationQueryHandler.Range()</c>: to = now, from = 24h before.</summary>
@@ -101,14 +100,4 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
         var t = to ?? DateTimeOffset.UtcNow;
         return (from ?? t.AddDays(-1), t);
     }
-
-    /// <summary>Unwrap a successful result or surface the failure to the agent as a tool error.</summary>
-    private static T Require<T>(OpResult<T> r) => r.Status switch
-    {
-        OpStatus.Ok => r.Value!,
-        OpStatus.NotFound => throw new McpException("Not found, or you don't have access to it."),
-        OpStatus.Invalid => throw new McpException(r.Error ?? "The request was invalid."),
-        OpStatus.Forbidden => throw new McpException(r.Error ?? "You don't have permission to do that."),
-        _ => throw new McpException("Unexpected error."),
-    };
 }

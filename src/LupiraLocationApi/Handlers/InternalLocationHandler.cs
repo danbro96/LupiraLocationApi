@@ -1,7 +1,7 @@
+using Lupira.Hosting.Problems;
 using LupiraLocationApi.Core.Application;
 using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Dtos.Location;
-using LupiraLocationApi.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace LupiraLocationApi.Handlers;

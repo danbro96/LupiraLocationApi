@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
-using LupiraLocationApi.Core.Application.Results;
+using Lupira.Results;
 using LupiraLocationApi.Core.Domain.Telemetry;
 using LupiraLocationApi.Core.Dtos.Location;
 using LupiraLocationApi.Core.Telemetry;

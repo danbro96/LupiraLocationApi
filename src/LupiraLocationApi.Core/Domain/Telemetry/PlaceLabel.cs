@@ -1,3 +1,5 @@
+using Lupira.Primitives;
+
 namespace LupiraLocationApi.Core.Domain.Telemetry;
 
 /// <summary>A reverse-geocoded place name, cached and keyed by a quantized (~100 m grid) coordinate so nearby fixes share

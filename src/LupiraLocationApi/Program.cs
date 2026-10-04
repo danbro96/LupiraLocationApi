@@ -1,27 +1,26 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using Lupira.Auth.DevUser;
+using Lupira.Hosting.Defaults;
+using Lupira.Hosting.Health;
+using Lupira.Hosting.LanEdge;
+using Lupira.Hosting.Observability;
+using Lupira.Hosting.Problems;
+using Lupira.Mcp;
 using LupiraLocationApi.Auth;
-using LupiraLocationApi.Core.Domain;
 using LupiraLocationApi.Core.Telemetry;
 using LupiraLocationApi.Endpoints;
 using LupiraLocationApi.Handlers;
 using LupiraLocationApi.Health;
-using LupiraLocationApi.Http;
 using LupiraLocationApi.Mcp;
 using LupiraLocationApi.Workers;
 using Marten;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using Npgsql;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,15 +39,13 @@ builder.Services.AddScoped<LocationQueryHandler>();
 builder.Services.AddScoped<InternalLocationHandler>();
 
 // MCP server for the agent (read-only, derived/coarse tools), mounted at /mcp over Streamable HTTP.
-// LAN/WireGuard-only — not published through the tunnel (see UseLanOnlySurfaces + the MapMcp call below).
-builder.Services.AddMcpServer().WithHttpTransport()
-    .WithRequestFilters(f => f.AddCallToolFilter(StrictToolArguments.Filter))
-    .WithTools<LocationTools>();
+// LAN/WireGuard-only — not published through the tunnel (see UseLanOnlySurfaces + the MapLupiraMcp call below).
+builder.Services.AddLupiraMcp().WithTools<LocationTools>();
 
-builder.Services.ConfigureHttpJsonOptions(o =>
+builder.AddLupiraDefaults(o =>
 {
-    o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
-    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    o.CaseInsensitiveProperties = true;
+    o.ForwardedHeaders = ForwardedHeaders.None;
 });
 
 // Background maintenance: partition provisioning + nightly rollup + retention drop (gated by config).
@@ -94,10 +91,10 @@ var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.Authentic
 
 // Development-only: allow X-Dev-User header auth so the API can be exercised without Authentik.
 if (builder.Environment.IsDevelopment())
-    authBuilder.AddScheme<AuthenticationSchemeOptions, DevAuthHandler>(DevAuthHandler.SchemeName, _ => { });
+    authBuilder.AddLupiraDevHeaderAuth();
 
 string[] apiSchemes = builder.Environment.IsDevelopment()
-    ? [JwtBearerDefaults.AuthenticationScheme, DevAuthHandler.SchemeName]
+    ? [JwtBearerDefaults.AuthenticationScheme, DevAuthenticationBuilderExtensions.DefaultScheme]
     : [JwtBearerDefaults.AuthenticationScheme];
 
 builder.Services.AddAuthorizationBuilder()
@@ -109,41 +106,11 @@ builder.Services.AddAuthorizationBuilder()
             .SelectMany(c => c.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             .Contains("internal:read")));
 
-// --- Observability: OpenTelemetry -> OpenObserve. Env-gated; the OTLP exporter reads OTEL_EXPORTER_OTLP_* itself. ---
-var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
-builder.Services.AddOpenTelemetry()
-    .ConfigureResource(r => r.AddService("lupira-location-api"))
-    .WithTracing(t =>
-    {
-        // Health probes are polled constantly by docker + devops-monitor; their spans add nothing.
-        t.AddAspNetCoreInstrumentation(o => o.Filter = ctx =>
-            ctx.Request.Path != "/livez" && ctx.Request.Path != "/readyz");
-        t.AddHttpClientInstrumentation();
-        t.AddSource(LocationTelemetry.ActivitySourceName);
-        if (!string.IsNullOrWhiteSpace(otlpEndpoint)) t.AddOtlpExporter();
-    })
-    .WithMetrics(m =>
-    {
-        m.AddAspNetCoreInstrumentation();
-        m.AddHttpClientInstrumentation();
-        m.AddRuntimeInstrumentation();
-        if (!string.IsNullOrWhiteSpace(otlpEndpoint)) m.AddOtlpExporter();
-    });
+builder.AddLupiraTelemetry("lupira-location-api");
 
-builder.Logging.AddOpenTelemetry(o =>
-{
-    o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("lupira-location-api"));
-    o.IncludeScopes = true;
-    o.IncludeFormattedMessage = true;
-    if (!string.IsNullOrWhiteSpace(otlpEndpoint)) o.AddOtlpExporter();
-});
+builder.Services.AddLupiraHealth().AddReadyCheck<DatabaseReadyCheck>("postgres");
 
-builder.Services.AddHealthChecks()
-    .AddCheck<DatabaseReadyCheck>("postgres", tags: ["ready"]);
-
-builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = ctx =>
-    ctx.ProblemDetails.Extensions["traceId"] = Activity.Current?.Id ?? ctx.HttpContext.TraceIdentifier);
-builder.Services.AddExceptionHandler<ProblemExceptionHandler>();
+builder.Services.AddLupiraProblems();
 
 builder.Services.AddOpenApi("v1", options =>
 {
@@ -271,12 +238,10 @@ if (args.Contains("--apply-schema"))
 
 // LAN-only surfaces (/mcp + its discovery metadata): 404 anything arriving through the tunnel,
 // before auth so a tunnelled probe never even receives a challenge.
-app.UseLanOnlySurfaces();
+app.UseLanOnlySurfaces("/mcp", "/internal", "/.well-known/oauth-protected-resource");
 
+app.UseLupiraDefaults();
 app.UseExceptionHandler();
-// Fills the empty body of a bare 4xx (auth challenges, TypedResults.NotFound) with
-// ProblemDetails, so the spec's promise holds. Scoped away from /mcp — JSON-RPC has its own error shape.
-app.UseWhen(c => !c.Request.Path.StartsWithSegments("/mcp"), b => b.UseStatusCodePages());
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -291,11 +256,7 @@ app.MapGet("/", () => TypedResults.Redirect("/scalar"))
    .ExcludeFromDescription()
    .AllowAnonymous();
 
-// Health probes: /livez = liveness (no dependency checks); /readyz = readiness (Postgres reachable).
-app.MapHealthChecks("/livez", new HealthCheckOptions { Predicate = _ => false })
-    .DisableHttpMetrics();
-app.MapHealthChecks("/readyz", new HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") })
-    .DisableHttpMetrics();
+app.MapLupiraHealth();
 
 // REST surface.
 app.MapMe();
@@ -307,7 +268,7 @@ app.MapInternal();
 // Agent MCP transport (LAN/WireGuard-only; excluded from the Cloudflare Tunnel at the edge).
 // RFC 9728 metadata lets MCP clients discover the Authentik issuer from the 401 challenge.
 app.MapMcpResourceMetadata(app.Configuration["Auth:Oidc:Authority"]);
-app.MapMcp("/mcp").RequireAuthorization("ApiPolicy");
+app.MapLupiraMcp();
 
 app.Run();
 
