@@ -9,4 +9,5 @@ internal readonly record struct StayPoint(
     double Lat,
     double Lon,
     double RadiusM,
-    int Count);
+    int Count,
+    double MaxGapS);

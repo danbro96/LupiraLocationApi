@@ -44,7 +44,7 @@ internal static class StayPointDetector
                 var cLon = sumLon / (j - i);
                 double radius = 0;
                 for (var k = i; k < j; k++) radius = Math.Max(radius, Geo.HaversineMeters(cLat, cLon, p[k].Lat, p[k].Lon));
-                stays.Add(new StayPoint(i, j - 1, p[i].Ts, p[j - 1].Ts, cLat, cLon, radius, j - i));
+                stays.Add(new StayPoint(i, j - 1, p[i].Ts, p[j - 1].Ts, cLat, cLon, radius, j - i, MaxGapS(p, i, j - 1)));
                 i = j;
             }
             else
@@ -71,6 +71,14 @@ internal static class StayPointDetector
         var radius = Math.Max(
             a.RadiusM + Geo.HaversineMeters(a.Lat, a.Lon, lat, lon),
             b.RadiusM + Geo.HaversineMeters(b.Lat, b.Lon, lat, lon));
-        return new StayPoint(a.FirstIndex, b.LastIndex, a.Arrive, b.Depart, lat, lon, radius, count);
+        var maxGapS = Math.Max(Math.Max(a.MaxGapS, b.MaxGapS), MaxGapS(p, a.LastIndex, b.FirstIndex));
+        return new StayPoint(a.FirstIndex, b.LastIndex, a.Arrive, b.Depart, lat, lon, radius, count, maxGapS);
+    }
+
+    private static double MaxGapS(IReadOnlyList<RollupPoint> p, int first, int last)
+    {
+        double max = 0;
+        for (var k = first + 1; k <= last; k++) max = Math.Max(max, (p[k].Ts - p[k - 1].Ts).TotalSeconds);
+        return max;
     }
 }

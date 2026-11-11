@@ -27,7 +27,7 @@ public static class LocationQueryEndpoints
             .WithSummary("Fixes within a lat/lon rectangle over a time range.").Produces<List<TrackPointDto>>(StatusCodes.Status200OK)
             .WithName("GetBoundingBox");
         g.MapGet("/at", (DateTimeOffset ts, LocationQueryHandler h, CancellationToken ct) => h.AtAsync(ts, ct))
-            .WithSummary("Coarse place label at a time (synergy-safe — never the raw fix).").Produces<PlaceLabelAtDto>(StatusCodes.Status200OK)
+            .WithSummary("Coarse place label at a time (synergy-safe — never the raw fix); none when no visit covers it and no fix lies within 30 min.").Produces<PlaceLabelAtDto>(StatusCodes.Status200OK)
             .WithName("GetLocationAt");
         g.MapGet("/visits", (DateTimeOffset? from, DateTimeOffset? to, LocationQueryHandler h, CancellationToken ct) => h.VisitsAsync(from, to, ct))
             .WithSummary("Materialized stay-points overlapping a time range.").Produces<List<LocationVisitDto>>(StatusCodes.Status200OK)

@@ -10,4 +10,6 @@ Docs: `docs/architecture.md`.
 ## Rollup
 - Days are local (`Location:Rollup:TimeZoneId`); a window reprocesses from the arrival of the stay in progress at its start.
 - Bump `TripVisitService.AlgorithmVersion` whenever visit/trip derivation changes; the worker then rebuilds the retention window.
+- Late fixes are re-rolled from their local day via the `received_at` watermark (`LocationRollupCheckpoint.ReceivedThrough`).
+- `place_at` is evidence, not a guess: visit, else a fix within 30 min, else `none`.
 - Trip mode comes from displacement + GNSS speed (`TripModeClassifier`), never per-fix activity labels.

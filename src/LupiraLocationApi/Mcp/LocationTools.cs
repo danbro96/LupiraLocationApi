@@ -38,7 +38,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     }
 
     [McpServerTool(Name = "list_visits")]
-    [Description("List the caller's materialized location visits (stay-points) overlapping a time window, with coarse centroid and place label.")]
+    [Description("List the caller's materialized location visits (stay-points) overlapping a time window, with coarse centroid, place label, and the longest gap between fixes (maxGapS; a long gap means the stay is inferred across missing data).")]
     public async Task<List<LocationVisitDto>> ListVisits(
         [Description("Window start, ISO-8601 (default: 24h before 'to').")] DateTimeOffset? from = null,
         [Description("Window end, ISO-8601 (default: now).")] DateTimeOffset? to = null,
@@ -72,7 +72,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     }
 
     [McpServerTool(Name = "place_at")]
-    [Description("Coarse 'where was I at this time' answer: a place label and coarsened coordinate (visit centroid or ~100 m place). Never the raw fix.")]
+    [Description("Coarse 'where was I at this time' answer: a place label and coarsened coordinate (visit centroid or ~100 m place), never the raw fix. Source is none when no visit covers the time and no fix lies within 30 min.")]
     public async Task<PlaceLabelAtDto> PlaceAt(
         [Description("The timestamp to resolve, ISO-8601.")] DateTimeOffset ts,
         CancellationToken ct = default)

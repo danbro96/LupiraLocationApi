@@ -116,9 +116,10 @@ runs hourly (gated by `Telemetry__MaintenanceEnabled`, disabled under test):
 
 1. Pre-provision partitions for the active/upcoming window.
 2. Run the rollup pass ([LocationRollupPass.cs](../src/LupiraLocationApi.Core/Application/Telemetry/LocationRollupPass.cs))
-   for each `(principal, device)` seen in `location_current`: local *yesterday* through now, or the whole
-   retention window when the stored `LocationRollupCheckpoint.AlgorithmVersion` is below
-   `TripVisitService.AlgorithmVersion`.
+   for each `(principal, device)` seen in `location_current`: local *yesterday* through now, reaching back to
+   the local day of any fix received since the previous pass (`LocationRollupCheckpoint.ReceivedThrough`, a
+   `received_at` watermark), or the whole retention window when the stored
+   `LocationRollupCheckpoint.AlgorithmVersion` is below `TripVisitService.AlgorithmVersion`.
 3. Drop raw partitions entirely older than `Telemetry__LocationRetentionDays`.
 
 Days are local calendar days in `Location__Rollup__TimeZoneId` (default `Europe/Stockholm`). The rollup
@@ -129,7 +130,9 @@ stay or trip crossing midnight stays whole. It reads accurate fixes (≤50 m acc
 - **Visits** — stay-points ([StayPointDetector.cs](../src/LupiraLocationApi.Core/Application/Telemetry/StayPointDetector.cs)):
   a visit opens while consecutive fixes stay within 80 m of their running centroid for at least 8 minutes.
   Adjacent visits merge when their centroids are within 120 m, the gap is at most 30 minutes, and no fix in
-  between strays beyond 250 m; indoor jitter otherwise splits one stay into several.
+  between strays beyond 250 m; indoor jitter otherwise splits one stay into several. `MaxGapS` records the
+  longest stretch between consecutive fixes, so a consumer can tell a well-sampled stay from one inferred
+  across missing data.
 - **Trips** — the movement between consecutive visits: path distance, duration, average speed (distance over
   duration), highest trusted GNSS speed, and the mode covering the most distance
   ([TripModeClassifier.cs](../src/LupiraLocationApi.Core/Application/Telemetry/TripModeClassifier.cs)). Each
@@ -148,7 +151,8 @@ are resolve-once-and-freeze: a coordinate is quantized to a ~100 m grid cell (st
 reverse-geocoded against a Nominatim instance if `Nominatim__BaseUrl` is set. The result is cached as a
 `PlaceLabel` document and frozen onto visits. If unset, or on any failure, the label is simply `null` — it
 never blocks ingest and never calls out unless configured. `GET /location/at` returns only a coarse
-label + coarsened coordinate, never the raw fix.
+label + coarsened coordinate, never the raw fix: the visit covering the time, else the nearest accurate fix
+within 30 minutes (with its `FixTs`), else `none`.
 
 ## Error handling & transport mapping
 
@@ -215,6 +219,7 @@ classDiagram
         +double CentroidLon
         +double RadiusM
         +int SampleCount
+        +double MaxGapS
         +string PlaceLabel
     }
     class LocationTrip {
@@ -259,6 +264,7 @@ classDiagram
     class LocationRollupCheckpoint {
         +string Id
         +int AlgorithmVersion
+        +DateTimeOffset ReceivedThrough
     }
     class location_point {
         raw_telemetry_table_weekly_partitions

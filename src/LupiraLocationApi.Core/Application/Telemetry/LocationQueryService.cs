@@ -14,6 +14,8 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
 {
     private const int Cap = 50_000;
 
+    private static readonly TimeSpan MaxFixAge = TimeSpan.FromMinutes(30);
+
     public async Task<OpResult<List<CurrentFixDto>>> CurrentAsync(Guid pid, Guid? deviceId, CancellationToken ct = default)
     {
         const string sql = """
@@ -160,6 +162,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
     {
         var visit = await session.Query<LocationVisit>()
             .Where(v => v.PrincipalId == pid && v.ArriveTs <= ts && v.DepartTs >= ts)
+            .OrderByDescending(v => v.ArriveTs)
             .FirstOrDefaultAsync(ct);
         if (visit is not null)
         {
@@ -168,17 +171,38 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
             return OpResult<PlaceLabelAtDto>.Ok(new PlaceLabelAtDto { Ts = ts, Label = label, Lat = qlat, Lon = qlon, Source = "visit" });
         }
 
-        await using var conn = await db.OpenConnectionAsync(ct);
-        await using var cmd = new NpgsqlCommand(
-            "SELECT lat, lon FROM telemetry.location_point WHERE principal_id = @pid ORDER BY abs(extract(epoch FROM (ts - @ts))) LIMIT 1", conn);
-        cmd.Parameters.AddWithValue("pid", pid);
-        cmd.Parameters.AddWithValue("ts", NpgsqlDbType.TimestampTz, ts.UtcDateTime);
-        await using var r = await cmd.ExecuteReaderAsync(ct);
-        if (await r.ReadAsync(ct))
+        // One indexed probe each side of ts; a fix further away than MaxFixAge says nothing about where the caller was.
+        const string sql = """
+            (SELECT ts, lat, lon FROM telemetry.location_point
+             WHERE principal_id = @pid AND ts <= @ts AND ts >= @ts - @maxAge
+               AND (accuracy_m IS NULL OR accuracy_m <= 50) AND is_mock = false
+             ORDER BY ts DESC LIMIT 1)
+            UNION ALL
+            (SELECT ts, lat, lon FROM telemetry.location_point
+             WHERE principal_id = @pid AND ts > @ts AND ts <= @ts + @maxAge
+               AND (accuracy_m IS NULL OR accuracy_m <= 50) AND is_mock = false
+             ORDER BY ts LIMIT 1)
+            """;
+        (DateTimeOffset Ts, double Lat, double Lon)? nearest = null;
+        await using (var conn = await db.OpenConnectionAsync(ct))
+        await using (var cmd = new NpgsqlCommand(sql, conn))
         {
-            var (qlat, qlon) = PlaceLabel.Quantize(r.GetDouble(0), r.GetDouble(1));
-            var label = await labels.ResolveAsync(r.GetDouble(0), r.GetDouble(1), ct);
-            return OpResult<PlaceLabelAtDto>.Ok(new PlaceLabelAtDto { Ts = ts, Label = label, Lat = qlat, Lon = qlon, Source = "fix" });
+            cmd.Parameters.AddWithValue("pid", pid);
+            cmd.Parameters.AddWithValue("ts", NpgsqlDbType.TimestampTz, ts.UtcDateTime);
+            cmd.Parameters.AddWithValue("maxAge", MaxFixAge);
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct))
+            {
+                var fix = (Utc(r, 0), r.GetDouble(1), r.GetDouble(2));
+                if (nearest is not { } best || (fix.Item1 - ts).Duration() < (best.Ts - ts).Duration()) nearest = fix;
+            }
+        }
+
+        if (nearest is { } hit)
+        {
+            var (qlat, qlon) = PlaceLabel.Quantize(hit.Lat, hit.Lon);
+            var label = await labels.ResolveAsync(hit.Lat, hit.Lon, ct);
+            return OpResult<PlaceLabelAtDto>.Ok(new PlaceLabelAtDto { Ts = ts, Label = label, Lat = qlat, Lon = qlon, Source = "fix", FixTs = hit.Ts });
         }
 
         return OpResult<PlaceLabelAtDto>.Ok(new PlaceLabelAtDto { Ts = ts, Label = null, Lat = 0, Lon = 0, Source = "none" });

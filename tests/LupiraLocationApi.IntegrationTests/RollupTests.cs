@@ -98,6 +98,29 @@ public sealed class RollupTests(LocationApiTestFactory factory) : IntegrationTes
         Assert.Equal(TripVisitService.AlgorithmVersion, checkpoint!.AlgorithmVersion);
     }
 
+    [Fact]
+    public async Task Rollup_pass_rolls_up_fixes_that_arrive_late()
+    {
+        var api = Factory.ApiClient("alice@x.test");
+        var (_, key, _) = await SetupDeviceAsync(api);
+        await IngestLocationAsync(key, [Fix(1, DateTimeOffset.UtcNow.AddMinutes(-1), 59.300, 18.000)]);
+        await RunPassAsync();
+
+        var late = DateTimeOffset.UtcNow.AddDays(-5);
+        var lines = new List<string>();
+        for (var k = 0; k < 9; k++) lines.Add(Fix(k + 2, late.AddMinutes(k * 2), 59.300, 18.000));
+        await IngestLocationAsync(key, lines);
+        await RunPassAsync();
+
+        Assert.Single((await api.GetFromJsonAsync<List<LocationVisitDto>>($"/location/visits?from={Q(late.AddHours(-1))}&to={Q(late.AddHours(1))}"))!);
+    }
+
+    private async Task RunPassAsync()
+    {
+        using var scope = Factory.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<LocationRollupPass>().RunAsync(DateTimeOffset.UtcNow, 90);
+    }
+
     /// <summary>A local midnight three days back, and the local day it starts.</summary>
     private static (DateOnly Day, DateTimeOffset Midnight) PastMidnight()
     {

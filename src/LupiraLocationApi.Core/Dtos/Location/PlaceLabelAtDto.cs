@@ -12,4 +12,7 @@ public sealed class PlaceLabelAtDto
     public required double Lon { get; set; }
 
     public required string Source { get; set; }
+
+    /// <summary>Time of the matched fix when Source is fix.</summary>
+    public DateTimeOffset? FixTs { get; set; }
 }

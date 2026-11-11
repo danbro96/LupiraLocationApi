@@ -43,6 +43,25 @@ public class StayPointDetectorTests
     }
 
     [Fact]
+    public void Max_gap_is_the_widest_fix_spacing_inside_the_stay()
+    {
+        RollupPoint[] pts = [At(0, 0), At(2, 5), At(14, 0), At(16, 5)];
+
+        Assert.Equal(12 * 60, Assert.Single(StayPointDetector.Detect(pts)).MaxGapS);
+    }
+
+    [Fact]
+    public void A_merged_stay_spans_the_gap_between_its_parts()
+    {
+        var pts = new List<RollupPoint>();
+        for (var m = 0; m < 10; m++) pts.Add(At(m, north: 0));
+        pts.Add(At(10, north: 150));
+        for (var m = 35; m < 45; m++) pts.Add(At(m, north: 0));
+
+        Assert.Equal(25 * 60, Assert.Single(StayPointDetector.Detect(pts)).MaxGapS);
+    }
+
+    [Fact]
     public void Stays_300m_apart_stay_separate()
     {
         var pts = new List<RollupPoint>();

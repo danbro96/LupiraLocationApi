@@ -883,7 +883,7 @@
         "tags": [
           "Location"
         ],
-        "summary": "Coarse place label at a time (synergy-safe — never the raw fix).",
+        "summary": "Coarse place label at a time (synergy-safe — never the raw fix); none when no visit covers it and no fix lies within 30 min.",
         "operationId": "GetLocationAt",
         "parameters": [
           {
@@ -1693,7 +1693,8 @@
           "lat",
           "lon",
           "radiusM",
-          "sampleCount"
+          "sampleCount",
+          "maxGapS"
         ],
         "type": "object",
         "properties": {
@@ -1724,6 +1725,11 @@
           "sampleCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "maxGapS": {
+            "type": "number",
+            "description": "Longest stretch between consecutive fixes inside the visit; a long gap means the stay is inferred across\n            missing data.",
+            "format": "double"
           },
           "placeLabel": {
             "type": [
@@ -1808,6 +1814,14 @@
           },
           "source": {
             "type": "string"
+          },
+          "fixTs": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Time of the matched fix when Source is fix.",
+            "format": "date-time"
           }
         },
         "description": "A coarse \"where was I at T\" answer — a place label + coarsened coordinate, never the raw fix. Synergy-safe."

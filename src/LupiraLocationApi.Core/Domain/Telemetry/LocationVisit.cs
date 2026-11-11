@@ -22,5 +22,7 @@ public sealed class LocationVisit
 
     public int SampleCount { get; set; }
 
+    public double MaxGapS { get; set; }
+
     public string? PlaceLabel { get; set; }
 }

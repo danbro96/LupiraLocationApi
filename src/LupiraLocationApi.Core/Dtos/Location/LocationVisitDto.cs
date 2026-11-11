@@ -17,5 +17,9 @@ public sealed class LocationVisitDto
 
     public required int SampleCount { get; set; }
 
+    /// <summary>Longest stretch between consecutive fixes inside the visit; a long gap means the stay is inferred across
+    /// missing data.</summary>
+    public required double MaxGapS { get; set; }
+
     public string? PlaceLabel { get; set; }
 }

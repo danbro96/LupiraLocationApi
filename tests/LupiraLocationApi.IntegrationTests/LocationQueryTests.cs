@@ -135,7 +135,9 @@ public sealed class LocationQueryTests(LocationApiTestFactory factory) : Integra
 
         var from = Q(baseTs.AddHours(-1));
         var to = Q(baseTs.AddHours(2));
-        Assert.Equal(2, (await api.GetFromJsonAsync<List<LocationVisitDto>>($"/location/visits?from={from}&to={to}"))!.Count);
+        var visits = (await api.GetFromJsonAsync<List<LocationVisitDto>>($"/location/visits?from={from}&to={to}"))!;
+        Assert.Equal(2, visits.Count);
+        Assert.Equal(120, visits[0].MaxGapS);
         Assert.True((await api.GetFromJsonAsync<List<LocationTripDto>>($"/location/trips?from={from}&to={to}"))!.Count >= 1);
         var summary = await api.GetFromJsonAsync<DailyLocationSummaryDto>($"/location/summary?date={day:yyyy-MM-dd}");
         Assert.Equal(2, summary!.VisitCount);
@@ -163,8 +165,34 @@ public sealed class LocationQueryTests(LocationApiTestFactory factory) : Integra
         var (_, key, _) = await SetupDeviceAsync(api);
         var (_, baseTs) = SafeDay();
         await IngestLocationAsync(key, [Fix(1, baseTs, 59.300, 18.000)]);  // single fix → no visit
-        var at = await api.GetFromJsonAsync<PlaceLabelAtDto>($"/location/at?ts={Q(baseTs)}");
+        var at = await api.GetFromJsonAsync<PlaceLabelAtDto>($"/location/at?ts={Q(baseTs.AddMinutes(10))}");
         Assert.Equal("fix", at!.Source);
+        Assert.Equal(baseTs, at.FixTs);
+    }
+
+    [Fact]
+    public async Task At_returns_none_when_the_nearest_fix_is_over_30_min_away()
+    {
+        var api = Factory.ApiClient("alice@x.test");
+        var (_, key, _) = await SetupDeviceAsync(api);
+        var (_, baseTs) = SafeDay();
+        await IngestLocationAsync(key, [Fix(1, baseTs, 59.300, 18.000)]);
+
+        var at = await api.GetFromJsonAsync<PlaceLabelAtDto>($"/location/at?ts={Q(baseTs.AddMinutes(31))}");
+        Assert.Equal("none", at!.Source);
+        Assert.Null(at.FixTs);
+    }
+
+    [Fact]
+    public async Task At_ignores_inaccurate_and_mock_fixes()
+    {
+        var api = Factory.ApiClient("alice@x.test");
+        var (_, key, _) = await SetupDeviceAsync(api);
+        var (_, baseTs) = SafeDay();
+        await IngestLocationAsync(key, [Fix(1, baseTs, 59.300, 18.000, accuracy: 80), Fix(2, baseTs.AddMinutes(1), 59.300, 18.000, isMock: true)]);
+
+        var at = await api.GetFromJsonAsync<PlaceLabelAtDto>($"/location/at?ts={Q(baseTs)}");
+        Assert.Equal("none", at!.Source);
     }
 
     [Fact]

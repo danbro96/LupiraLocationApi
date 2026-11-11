@@ -15,7 +15,7 @@ namespace LupiraLocationApi.Core.Application.Telemetry;
 public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession session, PlaceLabelService labels, IOptions<LocationRollupOptions> options)
 {
     /// <summary>Bump when visit/trip derivation changes; the maintenance pass then rebuilds the retention window.</summary>
-    public const int AlgorithmVersion = 2;
+    public const int AlgorithmVersion = 3;
 
     private static readonly TimeSpan AnchorReach = TimeSpan.FromHours(12);
 
@@ -51,6 +51,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
                 CentroidLon = s.Lon,
                 RadiusM = s.RadiusM,
                 SampleCount = s.Count,
+                MaxGapS = s.MaxGapS,
                 PlaceLabel = await labels.ResolveAsync(s.Lat, s.Lon, ct),
             });
         }
@@ -80,6 +81,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
                 Lon = v.CentroidLon,
                 RadiusM = v.RadiusM,
                 SampleCount = v.SampleCount,
+                MaxGapS = v.MaxGapS,
                 PlaceLabel = v.PlaceLabel,
             })
             .ToList());
