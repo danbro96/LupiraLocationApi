@@ -38,7 +38,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     }
 
     [McpServerTool(Name = "list_visits")]
-    [Description("List the caller's materialized location visits (stay-points) in a time window, with coarse centroid and place label.")]
+    [Description("List the caller's materialized location visits (stay-points) overlapping a time window, with coarse centroid and place label.")]
     public async Task<List<LocationVisitDto>> ListVisits(
         [Description("Window start, ISO-8601 (default: 24h before 'to').")] DateTimeOffset? from = null,
         [Description("Window end, ISO-8601 (default: now).")] DateTimeOffset? to = null,
@@ -50,7 +50,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     }
 
     [McpServerTool(Name = "list_trips")]
-    [Description("List the caller's materialized trips (movement between stays) in a time window: distance, duration, dominant activity, speeds.")]
+    [Description("List the caller's materialized trips (movement between stays) overlapping a time window: distance, duration, dominant activity, speeds.")]
     public async Task<List<LocationTripDto>> ListTrips(
         [Description("Window start, ISO-8601 (default: 24h before 'to').")] DateTimeOffset? from = null,
         [Description("Window end, ISO-8601 (default: now).")] DateTimeOffset? to = null,
@@ -64,7 +64,7 @@ public sealed class LocationTools(CurrentUser user, DeviceService devices, Locat
     [McpServerTool(Name = "daily_summary")]
     [Description("Get the caller's per-day location rollup: total distance, time in motion vs stationary, visit count, and places visited.")]
     public async Task<DailyLocationSummaryDto> DailySummary(
-        [Description("The day to summarize (date only, e.g. 2026-06-21).")] DateOnly date,
+        [Description("The local calendar day to summarize (date only, e.g. 2026-06-21).")] DateOnly date,
         CancellationToken ct = default)
     {
         var pid = (await user.GetAsync(ct)).Id;

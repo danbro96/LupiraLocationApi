@@ -50,6 +50,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
             SELECT device_id, ts, lat, lon, accuracy_m, altitude_m, heading_deg, speed_mps, activity, provider
             FROM telemetry.location_point
             WHERE principal_id = @pid AND ts >= @from AND ts < @to AND (@did::uuid IS NULL OR device_id = @did)
+              AND (accuracy_m IS NULL OR accuracy_m <= 50) AND is_mock = false
             ORDER BY device_id, ts, seq
             LIMIT @cap
             """;
@@ -63,6 +64,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
                    device_id, ts, lat, lon, accuracy_m, altitude_m, heading_deg, speed_mps, activity, provider
             FROM telemetry.location_point
             WHERE principal_id = @pid AND ts >= @from AND ts < @to AND (@did::uuid IS NULL OR device_id = @did)
+              AND (accuracy_m IS NULL OR accuracy_m <= 50) AND is_mock = false
             ORDER BY date_bin(@bucket, ts, @from), device_id, accuracy_m NULLS LAST, ts
             """;
         return ReadTrackAsync(sql, pid, deviceId, from, to, addBucket: true, bucket: bucket, box: null, ct);
@@ -76,6 +78,7 @@ public sealed class LocationQueryService(NpgsqlDataSource db, IDocumentSession s
             WHERE principal_id = @pid AND ts >= @from AND ts < @to
               AND lat BETWEEN @minLat AND @maxLat AND lon BETWEEN @minLon AND @maxLon
               AND (@did::uuid IS NULL OR device_id = @did)
+              AND (accuracy_m IS NULL OR accuracy_m <= 50) AND is_mock = false
             ORDER BY device_id, ts, seq
             LIMIT @cap
             """;

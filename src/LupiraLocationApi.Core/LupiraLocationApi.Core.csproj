@@ -10,8 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Expose internal helpers (Geo, PartitionManager.Bounds) for unit testing. -->
+    <!-- Expose internal helpers (Geo, LocalDay, rollup detectors) to the test projects. -->
     <InternalsVisibleTo Include="LupiraLocationApi.UnitTests" />
+    <InternalsVisibleTo Include="LupiraLocationApi.IntegrationTests" />
   </ItemGroup>
 
   <ItemGroup>

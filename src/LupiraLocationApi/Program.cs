@@ -10,6 +10,7 @@ using Lupira.Identity.Marten.AspNetCore;
 using Lupira.Mcp;
 using Lupira.Postgres.Health;
 using LupiraLocationApi.Auth;
+using LupiraLocationApi.Core.Application.Telemetry;
 using LupiraLocationApi.Core.Telemetry;
 using LupiraLocationApi.Endpoints;
 using LupiraLocationApi.Handlers;
@@ -24,6 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 // --- Bounded context (Marten document store on the `location` schema + the raw-Npgsql `telemetry` path + the
 // transport-neutral services). Connection string is read lazily from ConnectionStrings:Postgres inside AddLocationCore. ---
 builder.Services.AddLocationCore();
+builder.Services.Configure<LocationRollupOptions>(builder.Configuration.GetSection("Location:Rollup"));
 
 // --- Host-only services: identity (claims -> PrincipalDirectory) + the thin REST/ingest handlers. ---
 builder.Services.AddHttpContextAccessor();
@@ -44,7 +46,7 @@ builder.AddLupiraDefaults(o =>
     o.ForwardedHeaders = ForwardedHeaders.None;
 });
 
-// Background maintenance: partition provisioning + nightly rollup + retention drop (gated by config).
+// Background maintenance: partition provisioning + hourly rollup + retention drop (gated by config).
 builder.Services.AddHostedService<LocationMaintenanceService>();
 
 // --- Auth: OIDC JWT for the REST surface (human reads/writes); per-device API key for /ingest (the mobile uploader).

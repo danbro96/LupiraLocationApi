@@ -15,10 +15,13 @@ public sealed class LocationTripDto
 
     public required double DurationS { get; set; }
 
+    /// <summary>Mode covering the most distance, inferred from displacement and GNSS speed.</summary>
     public MotionActivity? DominantActivity { get; set; }
 
+    /// <summary>Distance over duration.</summary>
     public required double AvgSpeedMps { get; set; }
 
+    /// <summary>Highest trusted GNSS speed.</summary>
     public required double MaxSpeedMps { get; set; }
 
     /// <summary>Endpoint visits (when the trip started/ended at a detected stay-point) — lets a client join trips to

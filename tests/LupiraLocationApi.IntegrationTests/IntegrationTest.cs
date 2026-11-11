@@ -54,12 +54,12 @@ public abstract class IntegrationTest(LocationApiTestFactory factory) : IAsyncLi
     protected static async Task<LocationIngestReceipt> IngestLocationAsync(HttpClient key, IEnumerable<string> lines) =>
         (await (await PostNdjson(key, "/ingest/location", lines)).Content.ReadFromJsonAsync<LocationIngestReceipt>())!;
 
-    /// <summary>Triggers the rollup directly (the maintenance BackgroundService is disabled in tests).</summary>
+    /// <summary>Rolls up one local day directly (the maintenance BackgroundService is disabled in tests).</summary>
     protected async Task RollupAsync(Guid pid, Guid deviceId, DateOnly day)
     {
         using var scope = Factory.Services.CreateScope();
         var trips = scope.ServiceProvider.GetRequiredService<TripVisitService>();
-        await trips.RollupDayAsync(pid, deviceId, day);
+        await trips.RollupAsync(pid, deviceId, LocalDay.StartUtc(day, trips.TimeZone), LocalDay.StartUtc(day.AddDays(1), trips.TimeZone));
     }
 
     /// <summary>Builds one NDJSON location-fix line (doubles formatted invariant).</summary>

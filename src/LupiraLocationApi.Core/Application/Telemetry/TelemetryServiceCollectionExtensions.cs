@@ -14,6 +14,7 @@ public static class TelemetryServiceCollectionExtensions
         services.AddScoped<LocationIngestService>();
         services.AddScoped<LocationQueryService>();
         services.AddScoped<TripVisitService>();
+        services.AddScoped<LocationRollupPass>();
         return services;
     }
 }

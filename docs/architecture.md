@@ -111,26 +111,37 @@ Identity is **just-in-time provisioned** and local to this service:
 ## Derived intelligence & maintenance
 
 A background `LocationMaintenanceService`
-([Background/LocationMaintenanceService.cs](../src/LupiraLocationApi/Background/LocationMaintenanceService.cs))
+([Workers/LocationMaintenanceService.cs](../src/LupiraLocationApi/Workers/LocationMaintenanceService.cs))
 runs hourly (gated by `Telemetry__MaintenanceEnabled`, disabled under test):
 
 1. Pre-provision partitions for the active/upcoming window.
-2. For each `(principal, device)` seen in `location_current`, roll up *yesterday* and *today*.
+2. Run the rollup pass ([LocationRollupPass.cs](../src/LupiraLocationApi.Core/Application/Telemetry/LocationRollupPass.cs))
+   for each `(principal, device)` seen in `location_current`: local *yesterday* through now, or the whole
+   retention window when the stored `LocationRollupCheckpoint.AlgorithmVersion` is below
+   `TripVisitService.AlgorithmVersion`.
 3. Drop raw partitions entirely older than `Telemetry__LocationRetentionDays`.
 
-The rollup ([TripVisitService.cs](../src/LupiraLocationApi.Core/Application/Telemetry/TripVisitService.cs))
-reads a day's accurate fixes (≤50 m accuracy, non-mock) and derives:
+Days are local calendar days in `Location__Rollup__TimeZoneId` (default `Europe/Stockholm`). The rollup
+([TripVisitService.cs](../src/LupiraLocationApi.Core/Application/Telemetry/TripVisitService.cs)) reprocesses
+from the arrival of the stay in progress at the window start (one that departed within 12 h before it), so a
+stay or trip crossing midnight stays whole. It reads accurate fixes (≤50 m accuracy, non-mock) and derives:
 
-- **Visits** — stay-points via clustering: a visit opens while consecutive fixes stay within an ~80 m roam
-  radius for at least 8 minutes of dwell; the centroid, radius, and sample count are recorded.
-- **Trips** — the movement between consecutive visits: path distance, duration, dominant OS-reported motion
-  activity, and average/max speed.
-- **DailyLocationSummary** — per-day distance, time in motion vs stationary, visit count, and the places
-  visited with dwell minutes.
+- **Visits** — stay-points ([StayPointDetector.cs](../src/LupiraLocationApi.Core/Application/Telemetry/StayPointDetector.cs)):
+  a visit opens while consecutive fixes stay within 80 m of their running centroid for at least 8 minutes.
+  Adjacent visits merge when their centroids are within 120 m, the gap is at most 30 minutes, and no fix in
+  between strays beyond 250 m; indoor jitter otherwise splits one stay into several.
+- **Trips** — the movement between consecutive visits: path distance, duration, average speed (distance over
+  duration), highest trusted GNSS speed, and the mode covering the most distance
+  ([TripModeClassifier.cs](../src/LupiraLocationApi.Core/Application/Telemetry/TripModeClassifier.cs)). Each
+  step is classed from its displacement speed and GNSS speed; fast displacement the GNSS never registered
+  (underground or indoor transit) counts as Vehicle. Per-fix activity labels are not used.
+- **DailyLocationSummary** — per local day: distance, time in motion vs stationary, visit count, and the
+  places visited with dwell minutes, all clipped to the day.
 
-The rollup is **idempotent** — re-running a day replaces that day+device's documents (the summary uses a
-deterministic id from `(principal, device, date)`). Because Visits/Trips/Summaries are Marten documents in
-the `location` schema, they **survive raw-fix retention drop**.
+The rollup is **idempotent** — re-running a window replaces that device's visits/trips in it (the summary
+uses a deterministic id from `(principal, device, date)`). Visits and trips are listed by overlap with the
+requested range. Because Visits/Trips/Summaries are Marten documents in the `location` schema, they
+**survive raw-fix retention drop**.
 
 **Place labels** ([PlaceLabelService.cs](../src/LupiraLocationApi.Core/Application/Telemetry/PlaceLabelService.cs))
 are resolve-once-and-freeze: a coordinate is quantized to a ~100 m grid cell (stable deterministic id) and
@@ -247,7 +258,7 @@ classDiagram
     }
     class LocationRollupCheckpoint {
         +string Id
-        +DateTimeOffset RolledUpThrough
+        +int AlgorithmVersion
     }
     class location_point {
         raw_telemetry_table_weekly_partitions

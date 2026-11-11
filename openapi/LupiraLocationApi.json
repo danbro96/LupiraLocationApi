@@ -940,7 +940,7 @@
         "tags": [
           "Location"
         ],
-        "summary": "Materialized stay-points over a time range.",
+        "summary": "Materialized stay-points overlapping a time range.",
         "operationId": "ListVisits",
         "parameters": [
           {
@@ -1007,7 +1007,7 @@
         "tags": [
           "Location"
         ],
-        "summary": "Materialized trips over a time range.",
+        "summary": "Materialized trips overlapping a time range.",
         "operationId": "ListTrips",
         "parameters": [
           {
@@ -1074,7 +1074,7 @@
         "tags": [
           "Location"
         ],
-        "summary": "Per-day location rollup.",
+        "summary": "Location rollup for one local calendar day.",
         "operationId": "GetDailySummary",
         "parameters": [
           {
@@ -1652,16 +1652,19 @@
                 "type": "null"
               },
               {
+                "description": "Mode covering the most distance, inferred from displacement and GNSS speed.",
                 "$ref": "#/components/schemas/MotionActivity"
               }
             ]
           },
           "avgSpeedMps": {
             "type": "number",
+            "description": "Distance over duration.",
             "format": "double"
           },
           "maxSpeedMps": {
             "type": "number",
+            "description": "Highest trusted GNSS speed.",
             "format": "double"
           },
           "fromVisitId": {

@@ -30,13 +30,13 @@ public static class LocationQueryEndpoints
             .WithSummary("Coarse place label at a time (synergy-safe — never the raw fix).").Produces<PlaceLabelAtDto>(StatusCodes.Status200OK)
             .WithName("GetLocationAt");
         g.MapGet("/visits", (DateTimeOffset? from, DateTimeOffset? to, LocationQueryHandler h, CancellationToken ct) => h.VisitsAsync(from, to, ct))
-            .WithSummary("Materialized stay-points over a time range.").Produces<List<LocationVisitDto>>(StatusCodes.Status200OK)
+            .WithSummary("Materialized stay-points overlapping a time range.").Produces<List<LocationVisitDto>>(StatusCodes.Status200OK)
             .WithName("ListVisits");
         g.MapGet("/trips", (DateTimeOffset? from, DateTimeOffset? to, LocationQueryHandler h, CancellationToken ct) => h.TripsAsync(from, to, ct))
-            .WithSummary("Materialized trips over a time range.").Produces<List<LocationTripDto>>(StatusCodes.Status200OK)
+            .WithSummary("Materialized trips overlapping a time range.").Produces<List<LocationTripDto>>(StatusCodes.Status200OK)
             .WithName("ListTrips");
         g.MapGet("/summary", (DateOnly date, LocationQueryHandler h, CancellationToken ct) => h.SummaryAsync(date, ct))
-            .WithSummary("Per-day location rollup.").Produces<DailyLocationSummaryDto>(StatusCodes.Status200OK)
+            .WithSummary("Location rollup for one local calendar day.").Produces<DailyLocationSummaryDto>(StatusCodes.Status200OK)
             .WithName("GetDailySummary");
         g.MapDelete("/", (DateTimeOffset? from, DateTimeOffset? to, Guid? deviceId, LocationQueryHandler h, CancellationToken ct) => h.PurgeAsync(from, to, deviceId, ct))
             .WithSummary("Purge raw fixes + derived docs in a time range (owner erase).").Produces(StatusCodes.Status204NoContent)

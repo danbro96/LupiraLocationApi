@@ -2,56 +2,65 @@ using Lupira.Results;
 using LupiraLocationApi.Core.Domain.Telemetry;
 using LupiraLocationApi.Core.Dtos.Location;
 using Marten;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using NpgsqlTypes;
 
 namespace LupiraLocationApi.Core.Application.Telemetry;
 
-/// <summary>Derives Visits (stay-points), Trips (movement between stays), and a DailyLocationSummary from a day's raw
-/// fixes, and materializes them as Marten docs in the <c>location</c> schema (so they survive raw-GPS retention drop).
-/// OS-activity-primed stay-point detection: a Visit opens when consecutive points stay within <c>roamRadius</c> for at
-/// least <c>minDwell</c>. The rollup is idempotent — re-running a day replaces that day+device's docs.</summary>
-public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession session, PlaceLabelService labels)
+/// <summary>Derives Visits (stay-points), Trips (movement between stays), and DailyLocationSummaries (per local day) from
+/// raw fixes, and materializes them as Marten docs in the <c>location</c> schema (so they survive raw-GPS retention drop).
+/// A rollup window reprocesses from the arrival of the stay in progress at its start, so stays and trips crossing midnight
+/// stay whole. Idempotent — re-running a window replaces that device's docs in it.</summary>
+public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession session, PlaceLabelService labels, IOptions<LocationRollupOptions> options)
 {
-    private const double RoamRadiusM = 80.0;
-    private static readonly TimeSpan MinDwell = TimeSpan.FromMinutes(8);
+    /// <summary>Bump when visit/trip derivation changes; the maintenance pass then rebuilds the retention window.</summary>
+    public const int AlgorithmVersion = 2;
 
-    private readonly record struct Pt(DateTimeOffset Ts, double Lat, double Lon, double? Speed, short Activity);
+    private static readonly TimeSpan AnchorReach = TimeSpan.FromHours(12);
 
-    public async Task<OpResult> RollupDayAsync(Guid principalId, Guid deviceId, DateOnly day, CancellationToken ct = default)
+    private readonly TimeZoneInfo _tz = TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId);
+
+    public TimeZoneInfo TimeZone => _tz;
+
+    public async Task<OpResult> RollupAsync(Guid principalId, Guid deviceId, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
     {
-        var dayStart = new DateTimeOffset(day.Year, day.Month, day.Day, 0, 0, 0, TimeSpan.Zero);
-        var dayEnd = dayStart.AddDays(1);
-        var points = await ReadPointsAsync(principalId, deviceId, dayStart, dayEnd, ct);
+        var reach = from - AnchorReach;
+        var anchor = await session.Query<LocationVisit>()
+            .Where(v => v.PrincipalId == principalId && v.DeviceId == deviceId && v.ArriveTs < from && v.DepartTs >= reach)
+            .OrderByDescending(v => v.ArriveTs)
+            .FirstOrDefaultAsync(ct);
+        var start = anchor?.ArriveTs ?? from;
+        var points = await ReadPointsAsync(principalId, deviceId, start, to, ct);
 
-        // Clear any prior rollup for this day+device (idempotent replace).
-        session.DeleteWhere<LocationVisit>(v => v.PrincipalId == principalId && v.DeviceId == deviceId && v.ArriveTs >= dayStart && v.ArriveTs < dayEnd);
-        session.DeleteWhere<LocationTrip>(t => t.PrincipalId == principalId && t.DeviceId == deviceId && t.StartTs >= dayStart && t.StartTs < dayEnd);
+        session.DeleteWhere<LocationVisit>(v => v.PrincipalId == principalId && v.DeviceId == deviceId && v.ArriveTs >= start && v.ArriveTs < to);
+        session.DeleteWhere<LocationTrip>(t => t.PrincipalId == principalId && t.DeviceId == deviceId && t.StartTs >= start && t.StartTs < to);
 
-        var visits = DetectVisits(points);
-        var visitDocs = new List<LocationVisit>();
-        foreach (var v in visits)
+        var stays = StayPointDetector.Detect(points);
+        var visits = new List<LocationVisit>(stays.Count);
+        foreach (var s in stays)
         {
-            visitDocs.Add(new LocationVisit
+            visits.Add(new LocationVisit
             {
                 Id = Guid.NewGuid(),
                 PrincipalId = principalId,
                 DeviceId = deviceId,
-                ArriveTs = v.Arrive,
-                DepartTs = v.Depart,
-                CentroidLat = v.Lat,
-                CentroidLon = v.Lon,
-                RadiusM = v.Radius,
-                SampleCount = v.Count,
-                PlaceLabel = await labels.ResolveAsync(v.Lat, v.Lon, ct),
+                ArriveTs = s.Arrive,
+                DepartTs = s.Depart,
+                CentroidLat = s.Lat,
+                CentroidLon = s.Lon,
+                RadiusM = s.RadiusM,
+                SampleCount = s.Count,
+                PlaceLabel = await labels.ResolveAsync(s.Lat, s.Lon, ct),
             });
         }
 
-        var trips = BuildTrips(principalId, deviceId, visitDocs, points);
+        var trips = BuildTrips(principalId, deviceId, stays, visits, points);
 
-        foreach (var v in visitDocs) session.Store(v);
+        foreach (var v in visits) session.Store(v);
         foreach (var t in trips) session.Store(t);
-        session.Store(BuildSummary(principalId, deviceId, day, points, visitDocs, trips));
+        for (var day = LocalDay.Of(from, _tz); LocalDay.StartUtc(day, _tz) < to; day = day.AddDays(1))
+            session.Store(BuildSummary(principalId, deviceId, day, points, visits, trips));
         await session.SaveChangesAsync(ct);
         return OpResult.Ok();
     }
@@ -59,7 +68,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
     public async Task<OpResult<List<LocationVisitDto>>> VisitsAsync(Guid pid, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
     {
         var visits = await session.Query<LocationVisit>()
-            .Where(v => v.PrincipalId == pid && v.ArriveTs >= from && v.ArriveTs < to)
+            .Where(v => v.PrincipalId == pid && v.ArriveTs < to && v.DepartTs > from)
             .OrderBy(v => v.ArriveTs).ToListAsync(ct);
         return OpResult<List<LocationVisitDto>>.Ok(visits
             .Select(v => new LocationVisitDto
@@ -79,7 +88,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
     public async Task<OpResult<List<LocationTripDto>>> TripsAsync(Guid pid, DateTimeOffset from, DateTimeOffset to, CancellationToken ct = default)
     {
         var trips = await session.Query<LocationTrip>()
-            .Where(t => t.PrincipalId == pid && t.StartTs >= from && t.StartTs < to)
+            .Where(t => t.PrincipalId == pid && t.StartTs < to && t.EndTs > from)
             .OrderBy(t => t.StartTs).ToListAsync(ct);
         return OpResult<List<LocationTripDto>>.Ok(trips
             .Select(t => new LocationTripDto
@@ -128,89 +137,52 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         });
     }
 
-    private readonly record struct VisitAccum(DateTimeOffset Arrive, DateTimeOffset Depart, double Lat, double Lon, double Radius, int Count);
-
-    private static List<VisitAccum> DetectVisits(IReadOnlyList<Pt> p)
-    {
-        var visits = new List<VisitAccum>();
-        var n = p.Count;
-        var i = 0;
-        while (i < n)
-        {
-            var j = i + 1;
-            while (j < n && Geo.HaversineMeters(p[i].Lat, p[i].Lon, p[j].Lat, p[j].Lon) <= RoamRadiusM) j++;
-            var dwell = p[j - 1].Ts - p[i].Ts;
-            if (j - 1 > i && dwell >= MinDwell)
-            {
-                double sumLat = 0, sumLon = 0;
-                for (var k = i; k < j; k++)
-                {
-                    sumLat += p[k].Lat;
-                    sumLon += p[k].Lon;
-                }
-
-                var cLat = sumLat / (j - i);
-                var cLon = sumLon / (j - i);
-                double radius = 0;
-                for (var k = i; k < j; k++) radius = Math.Max(radius, Geo.HaversineMeters(cLat, cLon, p[k].Lat, p[k].Lon));
-                visits.Add(new VisitAccum(p[i].Ts, p[j - 1].Ts, cLat, cLon, radius, j - i));
-                i = j;
-            }
-            else
-            {
-                i++;
-            }
-        }
-
-        return visits;
-    }
-
-    private static List<LocationTrip> BuildTrips(Guid pid, Guid did, List<LocationVisit> visits, IReadOnlyList<Pt> points)
+    private static List<LocationTrip> BuildTrips(Guid pid, Guid did, List<StayPoint> stays, List<LocationVisit> visits, List<RollupPoint> points)
     {
         var trips = new List<LocationTrip>();
-        for (var k = 0; k + 1 < visits.Count; k++)
+        for (var k = 0; k + 1 < stays.Count; k++)
         {
-            var startTs = visits[k].DepartTs;
-            var endTs = visits[k + 1].ArriveTs;
-            var seg = points.Where(p => p.Ts >= startTs && p.Ts <= endTs).ToList();
-            if (seg.Count < 2) continue;
-
+            var seg = points.GetRange(stays[k].LastIndex, stays[k + 1].FirstIndex - stays[k].LastIndex + 1);
             double dist = 0;
             for (var m = 1; m < seg.Count; m++) dist += Geo.HaversineMeters(seg[m - 1].Lat, seg[m - 1].Lon, seg[m].Lat, seg[m].Lon);
-            var speeds = seg.Where(s => s.Speed is not null).Select(s => s.Speed!.Value).ToList();
+            var durationS = (stays[k + 1].Arrive - stays[k].Depart).TotalSeconds;
 
             trips.Add(new LocationTrip
             {
                 Id = Guid.NewGuid(),
                 PrincipalId = pid,
                 DeviceId = did,
-                StartTs = startTs,
-                EndTs = endTs,
+                StartTs = stays[k].Depart,
+                EndTs = stays[k + 1].Arrive,
                 FromVisitId = visits[k].Id,
                 ToVisitId = visits[k + 1].Id,
                 DistanceM = dist,
-                DurationS = (endTs - startTs).TotalSeconds,
-                DominantActivity = DominantActivity(seg),
-                AvgSpeedMps = speeds.Count > 0 ? speeds.Average() : 0,
-                MaxSpeedMps = speeds.Count > 0 ? speeds.Max() : 0,
+                DurationS = durationS,
+                DominantActivity = TripModeClassifier.Classify(seg),
+                AvgSpeedMps = durationS > 0 ? dist / durationS : 0,
+                MaxSpeedMps = seg.Max(s => s.TrustedSpeedMps) ?? 0,
             });
         }
 
         return trips;
     }
 
-    private static MotionActivity DominantActivity(IReadOnlyList<Pt> seg)
+    private static double OverlapS(DateTimeOffset start, DateTimeOffset end, DateTimeOffset windowStart, DateTimeOffset windowEnd)
     {
-        var grouped = seg.Select(s => (MotionActivity) s.Activity)
-            .Where(a => a != MotionActivity.Unknown)
-            .GroupBy(a => a).OrderByDescending(g => g.Count()).FirstOrDefault();
-        return grouped?.Key ?? MotionActivity.Unknown;
+        var s = start > windowStart ? start : windowStart;
+        var e = end < windowEnd ? end : windowEnd;
+        return e > s ? (e - s).TotalSeconds : 0;
     }
 
-    private static DailyLocationSummary BuildSummary(Guid pid, Guid did, DateOnly day, IReadOnlyList<Pt> points, List<LocationVisit> visits, List<LocationTrip> trips)
+    private DailyLocationSummary BuildSummary(Guid pid, Guid did, DateOnly day, List<RollupPoint> points, List<LocationVisit> visits, List<LocationTrip> trips)
     {
+        var dayStart = LocalDay.StartUtc(day, _tz);
+        var dayEnd = LocalDay.StartUtc(day.AddDays(1), _tz);
+        var dayPoints = points.Where(p => p.Ts >= dayStart && p.Ts < dayEnd).ToList();
         double pathM = 0;
-        for (var m = 1; m < points.Count; m++) pathM += Geo.HaversineMeters(points[m - 1].Lat, points[m - 1].Lon, points[m].Lat, points[m].Lon);
+        for (var m = 1; m < dayPoints.Count; m++) pathM += Geo.HaversineMeters(dayPoints[m - 1].Lat, dayPoints[m - 1].Lon, dayPoints[m].Lat, dayPoints[m].Lon);
+        var dayVisits = visits.Where(v => v.ArriveTs < dayEnd && v.DepartTs > dayStart).ToList();
+
         return new DailyLocationSummary
         {
             Id = DailyLocationSummary.MakeId(pid, did, day),
@@ -218,23 +190,25 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
             DeviceId = did,
             Date = day,
             DistanceM = pathM,
-            TimeInMotionS = trips.Sum(t => t.DurationS),
-            TimeStationaryS = visits.Sum(v => (v.DepartTs - v.ArriveTs).TotalSeconds),
-            VisitCount = visits.Count,
-            PlacesVisited = visits.Select(v => new VisitedPlace(v.PlaceLabel, v.CentroidLat, v.CentroidLon, (v.DepartTs - v.ArriveTs).TotalMinutes)).ToList(),
+            TimeInMotionS = trips.Sum(t => OverlapS(t.StartTs, t.EndTs, dayStart, dayEnd)),
+            TimeStationaryS = dayVisits.Sum(v => OverlapS(v.ArriveTs, v.DepartTs, dayStart, dayEnd)),
+            VisitCount = dayVisits.Count,
+            PlacesVisited = dayVisits
+                .Select(v => new VisitedPlace(v.PlaceLabel, v.CentroidLat, v.CentroidLon, OverlapS(v.ArriveTs, v.DepartTs, dayStart, dayEnd) / 60))
+                .ToList(),
         };
     }
 
-    private async Task<List<Pt>> ReadPointsAsync(Guid pid, Guid did, DateTimeOffset from, DateTimeOffset to, CancellationToken ct)
+    private async Task<List<RollupPoint>> ReadPointsAsync(Guid pid, Guid did, DateTimeOffset from, DateTimeOffset to, CancellationToken ct)
     {
         const string sql = """
-            SELECT ts, lat, lon, speed_mps, activity
+            SELECT ts, lat, lon, speed_mps, speed_acc_mps
             FROM telemetry.location_point
             WHERE principal_id = @pid AND device_id = @did AND ts >= @from AND ts < @to
               AND (accuracy_m IS NULL OR accuracy_m <= 50) AND is_mock = false
             ORDER BY ts, seq
             """;
-        var pts = new List<Pt>();
+        var pts = new List<RollupPoint>();
         await using var conn = await db.OpenConnectionAsync(ct);
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("pid", pid);
@@ -243,7 +217,7 @@ public sealed class TripVisitService(NpgsqlDataSource db, IDocumentSession sessi
         cmd.Parameters.AddWithValue("to", NpgsqlDbType.TimestampTz, to.UtcDateTime);
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
-            pts.Add(new Pt(new DateTimeOffset(r.GetFieldValue<DateTime>(0), TimeSpan.Zero), r.GetDouble(1), r.GetDouble(2), Db.NDouble(r, 3), Db.NShort(r, 4) ?? 0));
+            pts.Add(new RollupPoint(new DateTimeOffset(r.GetFieldValue<DateTime>(0), TimeSpan.Zero), r.GetDouble(1), r.GetDouble(2), Db.NDouble(r, 3), Db.NDouble(r, 4)));
         return pts;
     }
 }

@@ -18,7 +18,7 @@ a multi-tenant or social product. All data belongs to one principal and is isola
   resumable (a cursor reports the high-water `seq`), and pausable (a per-device kill-switch). Raw fixes
   land in time-partitioned tables (native weekly range partitions — no PostGIS or TimescaleDB).
 - **Query** — latest position per device, raw or server-thinned track, distance/speed stats, bounding-box
-  search, derived **Visits / Trips / DailyLocationSummary** (materialized by a nightly rollup), and a
+  search, derived **Visits / Trips / DailyLocationSummary** (materialized by an hourly rollup over local days), and a
   coarse "where was I at *T*" place label.
 - **Maintenance** — a background service provisions upcoming partitions, runs the rollup, and drops raw
   partitions past the retention window.
@@ -165,6 +165,7 @@ All configuration is environment-driven (double-underscore maps to nested keys, 
 | `Nominatim__BaseUrl` | no | empty | Base URL of a [Nominatim](https://nominatim.org) instance for reverse-geocoded place labels. Empty disables labelling (cache-only / null). |
 | `Telemetry__LocationRetentionDays` | no | `90` | Raw-fix retention; older partitions are dropped. |
 | `Telemetry__MaintenanceEnabled` | no | `true` | Toggles the background partition/rollup/retention service. |
+| `Location__Rollup__TimeZoneId` | no | `Europe/Stockholm` | IANA zone whose local midnight splits rollup days (visits, trips, daily summaries). |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | no | empty | OTLP collector endpoint. Telemetry export is **enabled only when this is set**; otherwise it is a no-op. |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` / `OTEL_EXPORTER_OTLP_HEADERS` / `OTEL_RESOURCE_ATTRIBUTES` | no | — | Standard OpenTelemetry SDK knobs, read by the exporter directly. |
 
